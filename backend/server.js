@@ -31,6 +31,8 @@ const compatibilityRoutes = require('./routes/compatibility');
 const refrigeratorRoutes = require('./routes/refrigerator');
 const aiRoutes           = require('./routes/ai');
 
+app.use(express.static(path.join(__dirname, 'frontend')));
+
 app.use('/api/food-items',    foodItemRoutes);
 app.use('/api/recipes',       recipeRoutes);
 app.use('/api/grocery-alerts', groceryRoutes);
@@ -41,6 +43,10 @@ app.use('/api/ai',            aiRoutes);
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'FridgeAI Nexus API is running', timestamp: new Date() });
+});
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
 // ─── MongoDB Connection ───────────────────────────────────────────────────────
