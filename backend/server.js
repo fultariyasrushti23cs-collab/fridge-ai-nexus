@@ -9,6 +9,10 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 
+// const seed = require('./data/seed'); // Optional: Seed the database with initial data
+
+// seed(); // Uncomment to seed the database on server start (use with caution in production)
+
 // Load environment variables
 dotenv.config();
 
@@ -24,21 +28,21 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
-const foodItemRoutes     = require('./routes/foodItems');
-const recipeRoutes       = require('./routes/recipes');
-const groceryRoutes      = require('./routes/grocery');
+const foodItemRoutes = require('./routes/foodItems');
+const recipeRoutes = require('./routes/recipes');
+const groceryRoutes = require('./routes/grocery');
 const compatibilityRoutes = require('./routes/compatibility');
 const refrigeratorRoutes = require('./routes/refrigerator');
-const aiRoutes           = require('./routes/ai');
+const aiRoutes = require('./routes/ai');
 
 app.use(express.static(path.join(__dirname, 'frontend')));
 
-app.use('/api/food-items',    foodItemRoutes);
-app.use('/api/recipes',       recipeRoutes);
+app.use('/api/food-items', foodItemRoutes);
+app.use('/api/recipes', recipeRoutes);
 app.use('/api/grocery-alerts', groceryRoutes);
 app.use('/api/compatibility-check', compatibilityRoutes);
-app.use('/api/refrigerator',  refrigeratorRoutes);
-app.use('/api/ai',            aiRoutes);
+app.use('/api/refrigerator', refrigeratorRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

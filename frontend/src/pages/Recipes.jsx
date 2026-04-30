@@ -9,16 +9,16 @@ import { SectionHeader, EmptyState, Spinner } from '../components/UI';
 import toast from 'react-hot-toast';
 
 const DIFF_COLOR = { easy: '#22c55e', medium: '#eab308', hard: '#ef4444' };
-const CAT_ICON   = { breakfast: '🍳', lunch: '🥗', dinner: '🍽️', snack: '🍎', dessert: '🍰', drink: '🥤' };
+const CAT_ICON = { breakfast: '🍳', lunch: '🥗', dinner: '🍽️', snack: '🍎', dessert: '🍰', drink: '🥤' };
 
 export default function Recipes() {
-  const [recipes,       setRecipes]       = useState([]);
-  const [loading,       setLoading]       = useState(true);
-  const [aiMatch,       setAiMatch]       = useState(true);
-  const [expanded,      setExpanded]      = useState(null);
-  const [compat,        setCompat]        = useState(null);
+  const [recipes, setRecipes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [aiMatch, setAiMatch] = useState(true);
+  const [expanded, setExpanded] = useState(null);
+  const [compat, setCompat] = useState(null);
   const [loadingCompat, setLoadingCompat] = useState(false);
-  const [filter,        setFilter]        = useState('');
+  const [filter, setFilter] = useState('');
 
   const fetchRecipes = async (match) => {
     setLoading(true);
@@ -64,7 +64,7 @@ export default function Recipes() {
               width: 16, height: 16, borderRadius: '50%', background: 'white',
               position: 'absolute', top: 2, left: aiMatch ? 18 : 2,
               transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.3)'
-            }}/>
+            }} />
           </div>
           <input type="checkbox" checked={aiMatch} onChange={e => setAiMatch(e.target.checked)} style={{ display: 'none' }} />
           <span style={{ fontSize: 13, color: aiMatch ? '#38bdf8' : '#64748b', fontWeight: 600 }}>
@@ -72,7 +72,7 @@ export default function Recipes() {
           </span>
         </label>
 
-        {['breakfast','lunch','dinner','snack','dessert'].map(cat => (
+        {['breakfast', 'lunch', 'dinner', 'snack', 'dessert'].map(cat => (
           <button
             key={cat}
             onClick={() => setFilter(filter === cat ? '' : cat)}
@@ -203,15 +203,28 @@ export default function Recipes() {
                   ))}
                 </div>
 
-                <button
-                  onClick={() => setExpanded(expanded === recipe._id ? null : recipe._id)}
-                  style={{
-                    width: '100%', padding: '8px', borderRadius: 8, border: '1px solid #334155',
-                    background: 'none', color: '#64748b', cursor: 'pointer', fontSize: 12, transition: 'all 0.2s'
-                  }}
-                >
-                  {expanded === recipe._id ? '▲ Hide Instructions' : '▼ View Instructions'}
-                </button>
+                <div style={{
+                  display: 'flex', gap: 10
+                }}>
+                  <button
+                    onClick={() => setExpanded(expanded === recipe._id ? null : recipe._id)}
+                    style={{
+                      width: '100%', padding: '8px', borderRadius: 8, border: '1px solid #334155',
+                      background: 'none', color: '#64748b', cursor: 'pointer', fontSize: 12, transition: 'all 0.2s'
+                    }}
+                  >
+                    {expanded === recipe._id ? '▲ Hide Instructions' : '▼ View Instructions'}
+                  </button>
+                  <button
+                    onClick={() => window.open(recipe.youtubeUrl, '_blank')}
+                    style={{
+                      width: '100%', padding: '8px', borderRadius: 8, border: '1px solid #334155',
+                      background: '#c64747', color: 'white', cursor: 'pointer', fontSize: 12, transition: 'all 0.2s'
+                    }}
+                  >
+                    Watch on YouTube
+                  </button>
+                </div>
 
                 {/* Instructions */}
                 {expanded === recipe._id && (

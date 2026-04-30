@@ -1,0 +1,2995 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>FridgeAI-Nexus</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg: #0d1117;
+            --bg2: #161b22;
+            --bg3: #21262d;
+            --card: #1c2128;
+            --card2: #252c36;
+            --border: rgba(48, 54, 61, 0.8);
+            --border2: rgba(99, 179, 237, 0.25);
+            --cyan: #22d3ee;
+            --purple: #a78bfa;
+            --green: #34d399;
+            --yellow: #fbbf24;
+            --red: #f87171;
+            --orange: #fb923c;
+            --t1: #f0f6fc;
+            --t2: #8b949e;
+            --t3: #484f58;
+            --r: 14px;
+            --rs: 10px;
+            --nav-h: 64px;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg);
+            color: var(--t1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ─── TOP HEADER ─── */
+        .header {
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            padding: 0 16px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            z-index: 10;
+            position: sticky;
+            top: 0;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .logo-icon {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, var(--cyan), var(--purple));
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+        }
+
+        .logo-text {
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: -.3px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hdr-btn {
+            background: none;
+            border: none;
+            color: var(--t2);
+            font-size: 20px;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: background .15s;
+            position: relative;
+        }
+
+        .hdr-btn:hover,
+        .hdr-btn:active {
+            background: var(--bg3);
+        }
+
+        .notif-dot {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 8px;
+            height: 8px;
+            background: var(--red);
+            border-radius: 50%;
+            border: 2px solid var(--bg2);
+        }
+
+        /* ─── SCROLL AREA ─── */
+        .scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: calc(var(--nav-h) + 10px);
+        }
+
+        .scroll-area::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* ─── PAGES ─── */
+        .page {
+            display: none;
+            padding: 16px;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn .2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* ─── BOTTOM NAV ─── */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-h);
+            background: var(--bg2);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            z-index: 100;
+            padding: 0 4px;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: var(--t3);
+            font-family: 'Nunito', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 6px 8px;
+            border-radius: var(--rs);
+            transition: all .15s;
+            min-width: 52px;
+            letter-spacing: .2px;
+        }
+
+        .nav-btn .nb-ic {
+            font-size: 22px;
+            transition: transform .15s;
+        }
+
+        .nav-btn.active {
+            color: var(--cyan);
+        }
+
+        .nav-btn.active .nb-ic {
+            transform: scale(1.15);
+        }
+
+        .nav-btn:active {
+            transform: scale(.93);
+        }
+
+        /* ─── SECTION TITLE ─── */
+        .pg-title {
+            font-size: 20px;
+            font-weight: 900;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pg-sub {
+            font-size: 12px;
+            color: var(--t2);
+            font-weight: 500;
+            margin-top: -10px;
+            margin-bottom: 14px;
+        }
+
+        /* ─── CARDS ─── */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--t2);
+            text-transform: uppercase;
+            letter-spacing: .09em;
+            margin-bottom: 11px;
+        }
+
+        /* ─── STAT ROW ─── */
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .stat-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--t2);
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-size: 26px;
+            font-weight: 900;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1;
+        }
+
+        .stat-hint {
+            font-size: 11px;
+            color: var(--t3);
+            font-weight: 500;
+        }
+
+        /* ─── FOOD ITEM ─── */
+        .food-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .food-item:last-child {
+            border-bottom: none;
+        }
+
+        .fi-emoji {
+            font-size: 22px;
+            width: 30px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .fi-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .fi-name {
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .fi-meta {
+            font-size: 11px;
+            color: var(--t2);
+            font-weight: 500;
+        }
+
+        .fi-bar {
+            height: 3px;
+            background: var(--bg3);
+            border-radius: 2px;
+            margin-top: 4px;
+        }
+
+        .fi-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width .5s;
+        }
+
+        .fi-badge {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 9px;
+            border-radius: 20px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .badge-fresh {
+            background: rgba(52, 211, 153, .15);
+            color: var(--green);
+        }
+
+        .badge-soon {
+            background: rgba(251, 191, 36, .15);
+            color: var(--yellow);
+        }
+
+        .badge-expired {
+            background: rgba(248, 113, 113, .15);
+            color: var(--red);
+        }
+
+        /* ─── ALERT BOX ─── */
+        .alert {
+            border-radius: var(--rs);
+            padding: 11px 13px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .alert-warn {
+            background: rgba(251, 191, 36, .1);
+            border: 1px solid rgba(251, 191, 36, .3);
+            color: var(--yellow);
+        }
+
+        .alert-danger {
+            background: rgba(248, 113, 113, .1);
+            border: 1px solid rgba(248, 113, 113, .3);
+            color: var(--red);
+        }
+
+        .alert-info {
+            background: rgba(34, 211, 238, .1);
+            border: 1px solid rgba(34, 211, 238, .3);
+            color: var(--cyan);
+        }
+
+        .alert-success {
+            background: rgba(52, 211, 153, .1);
+            border: 1px solid rgba(52, 211, 153, .3);
+            color: var(--green);
+        }
+
+        /* ─── METRIC BAR ─── */
+        .metric {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 9px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--t2);
+            font-weight: 600;
+            width: 150px;
+            flex-shrink: 0;
+        }
+
+        .metric-bar {
+            flex: 1;
+            height: 6px;
+            background: var(--bg3);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .metric-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+
+        .metric-val {
+            font-size: 12px;
+            font-weight: 800;
+            width: 32px;
+            text-align: right;
+        }
+
+        /* ─── TABS ─── */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 14px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-btn {
+            flex-shrink: 0;
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--t2);
+            transition: all .15s;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        .tab-btn:active {
+            transform: scale(.95);
+        }
+
+        .tab-btn.active {
+            background: var(--cyan);
+            border-color: var(--cyan);
+            color: #0d1117;
+        }
+
+        /* ─── RECIPE CARD ─── */
+        .recipe-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform .15s, border-color .15s;
+            margin-bottom: 12px;
+        }
+
+        .recipe-card:active {
+            transform: scale(.97);
+        }
+
+        .recipe-thumb {
+            position: relative;
+            height: 160px;
+            background: var(--bg3);
+            overflow: hidden;
+        }
+
+        .recipe-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .recipe-thumb-fallback {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 52px;
+        }
+
+        .play-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, .35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .play-btn {
+            width: 52px;
+            height: 52px;
+            background: rgba(239, 68, 68, .92);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: transform .15s;
+        }
+
+        .recipe-card:active .play-btn {
+            transform: scale(1.1);
+        }
+
+        .dur-badge {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, .85);
+            color: #fff;
+            font-size: 11px;
+            padding: 3px 7px;
+            border-radius: 5px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        .recipe-body {
+            padding: 12px;
+        }
+
+        .recipe-title {
+            font-size: 14px;
+            font-weight: 800;
+            margin-bottom: 5px;
+            line-height: 1.35;
+        }
+
+        .recipe-meta {
+            font-size: 11px;
+            color: var(--t2);
+            font-weight: 600;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .recipe-tag {
+            background: rgba(167, 139, 250, .15);
+            color: var(--purple);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .recipe-urgency {
+            font-size: 11px;
+            font-weight: 700;
+            margin-top: 7px;
+        }
+
+        .ing-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 7px;
+        }
+
+        .chip-have {
+            background: rgba(52, 211, 153, .15);
+            color: var(--green);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .chip-need {
+            background: rgba(72, 79, 88, .4);
+            color: var(--t2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        /* ─── VIDEO GRID ─── */
+        .vid-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        @media(min-width:600px) {
+            .vid-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .vid-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform .15s;
+        }
+
+        .vid-card:active {
+            transform: scale(.95);
+        }
+
+        .vid-thumb {
+            position: relative;
+            padding-bottom: 56.25%;
+            background: var(--bg3);
+        }
+
+        .vid-thumb img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .vid-thumb .play-mini {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 36px;
+            height: 36px;
+            background: rgba(239, 68, 68, .9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .vid-dur {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: rgba(0, 0, 0, .85);
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .vid-info {
+            padding: 9px;
+        }
+
+        .vid-title {
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.35;
+            margin-bottom: 4px;
+        }
+
+        .vid-meta {
+            font-size: 10px;
+            color: var(--t2);
+            font-weight: 600;
+        }
+
+        .cat-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 8px;
+        }
+
+        /* ─── VIDEO MODAL ─── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .9);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            width: 100%;
+            max-width: 700px;
+            overflow: hidden;
+        }
+
+        .modal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title {
+            font-size: 14px;
+            font-weight: 800;
+            flex: 1;
+            padding-right: 10px;
+            line-height: 1.3;
+        }
+
+        .modal-close {
+            background: var(--bg3);
+            border: none;
+            color: var(--t1);
+            font-size: 18px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        .modal-close:active {
+            transform: scale(.9);
+        }
+
+        .vid-frame {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+        }
+
+        .vid-frame iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .modal-footer {
+            padding: 10px 14px;
+            font-size: 11px;
+            color: var(--t2);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        /* ─── COMPAT CHECKER ─── */
+        .compat-selects {
+            display: grid;
+            grid-template-columns: 1fr 40px 1fr;
+            gap: 10px;
+            align-items: end;
+            margin-bottom: 14px;
+        }
+
+        .vs-circle {
+            width: 40px;
+            height: 40px;
+            background: var(--bg3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 900;
+            color: var(--t3);
+            border: 1px solid var(--border);
+        }
+
+        .food-select {
+            background: var(--bg3);
+            border: 1px solid var(--border2);
+            color: var(--t1);
+            border-radius: var(--rs);
+            padding: 10px 12px;
+            font-size: 13px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        .compat-result {
+            border-radius: var(--rs);
+            padding: 13px;
+            margin-top: 4px;
+        }
+
+        .compat-safe {
+            background: rgba(52, 211, 153, .1);
+            border: 1px solid rgba(52, 211, 153, .3);
+        }
+
+        .compat-unsafe {
+            background: rgba(248, 113, 113, .1);
+            border: 1px solid rgba(248, 113, 113, .3);
+        }
+
+        .compat-warn {
+            background: rgba(251, 191, 36, .1);
+            border: 1px solid rgba(251, 191, 36, .3);
+        }
+
+        .compat-rtitle {
+            font-size: 14px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .compat-rbody {
+            font-size: 12px;
+            color: var(--t2);
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        /* ─── ETHYLENE GROUPS ─── */
+        .eth-group {
+            background: var(--bg3);
+            border-radius: var(--rs);
+            padding: 10px 12px;
+            margin-bottom: 8px;
+        }
+
+        .eth-label {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            margin-bottom: 7px;
+        }
+
+        .eth-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .eth-pill {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 12px;
+            background: var(--card2);
+            color: var(--t2);
+        }
+
+        /* ─── ZONE CARDS ─── */
+        .zone-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        @media(min-width:500px) {
+            .zone-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .zone-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 12px;
+        }
+
+        .zone-name {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .09em;
+            margin-bottom: 3px;
+        }
+
+        .zone-temp {
+            font-size: 12px;
+            color: var(--t2);
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 10px;
+        }
+
+        .zone-conflict {
+            background: rgba(248, 113, 113, .1);
+            border: 1px solid rgba(248, 113, 113, .3);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 11px;
+            color: var(--red);
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        /* ─── NOTIFICATIONS ─── */
+        .notif-item {
+            display: flex;
+            gap: 11px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .notif-item:last-child {
+            border-bottom: none;
+        }
+
+        .notif-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .notif-content {
+            flex: 1;
+        }
+
+        .notif-title {
+            font-size: 13px;
+            font-weight: 800;
+            margin-bottom: 3px;
+        }
+
+        .notif-body {
+            font-size: 12px;
+            color: var(--t2);
+            font-weight: 600;
+            line-height: 1.55;
+        }
+
+        .notif-time {
+            font-size: 10px;
+            color: var(--t3);
+            font-weight: 700;
+            margin-top: 3px;
+        }
+
+        .notif-actions {
+            display: flex;
+            gap: 7px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* ─── SHOPPING LIST ─── */
+        .shop-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .shop-item:last-child {
+            border-bottom: none;
+        }
+
+        .shop-check {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 2px solid var(--border2);
+            flex-shrink: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            font-size: 13px;
+            color: transparent;
+            transition: all .15s;
+            user-select: none;
+        }
+
+        .shop-check.done {
+            background: var(--green);
+            border-color: var(--green);
+            color: #0d1117;
+        }
+
+        .shop-name {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .shop-name.done-txt {
+            text-decoration: line-through;
+            opacity: .45;
+        }
+
+        .shop-sub {
+            font-size: 11px;
+            color: var(--t2);
+            font-weight: 600;
+        }
+
+        .urgency {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+
+        .u-exp {
+            background: rgba(248, 113, 113, .15);
+            color: var(--red);
+        }
+
+        .u-soon {
+            background: rgba(251, 191, 36, .15);
+            color: var(--yellow);
+        }
+
+        .u-ok {
+            background: rgba(52, 211, 153, .15);
+            color: var(--green);
+        }
+
+        /* ─── ENERGY MODE BUTTONS ─── */
+        .energy-btn {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 13px 14px;
+            border-radius: var(--rs);
+            border: 1px solid var(--border);
+            background: var(--bg3);
+            cursor: pointer;
+            transition: all .15s;
+            width: 100%;
+            margin-bottom: 9px;
+            font-family: 'Nunito', sans-serif;
+            color: var(--t1);
+            text-align: left;
+        }
+
+        .energy-btn:active {
+            transform: scale(.98);
+        }
+
+        .energy-btn.active {
+            border-color: var(--cyan);
+            background: rgba(34, 211, 238, .08);
+        }
+
+        .energy-btn .em-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .energy-btn .em-info {
+            flex: 1;
+        }
+
+        .energy-btn .em-name {
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .energy-btn .em-desc {
+            font-size: 11px;
+            color: var(--t2);
+            font-weight: 600;
+        }
+
+        .energy-btn .em-check {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--border2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: transparent;
+            flex-shrink: 0;
+            transition: all .15s;
+        }
+
+        .energy-btn.active .em-check {
+            background: var(--cyan);
+            border-color: var(--cyan);
+            color: #0d1117;
+        }
+
+        /* ─── BUTTONS ─── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 18px;
+            border-radius: var(--rs);
+            border: none;
+            font-family: 'Nunito', sans-serif;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all .15s;
+            text-decoration: none;
+        }
+
+        .btn:active {
+            transform: scale(.96);
+        }
+
+        .btn-primary {
+            background: var(--cyan);
+            color: #0d1117;
+        }
+
+        .btn-primary:hover {
+            background: #06b6d4;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border2);
+            color: var(--t1);
+        }
+
+        .btn-outline:hover {
+            background: var(--bg3);
+        }
+
+        .btn-danger {
+            background: rgba(248, 113, 113, .15);
+            color: var(--red);
+            border: 1px solid rgba(248, 113, 113, .3);
+        }
+
+        .btn-success {
+            background: rgba(52, 211, 153, .15);
+            color: var(--green);
+            border: 1px solid rgba(52, 211, 153, .3);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 11px;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        /* ─── FORM INPUTS ─── */
+        .form-group {
+            margin-bottom: 13px;
+        }
+
+        .form-label {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--t2);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-input,
+        .form-select {
+            background: var(--bg3);
+            border: 1px solid var(--border2);
+            color: var(--t1);
+            border-radius: var(--rs);
+            padding: 11px 13px;
+            font-size: 14px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 600;
+            width: 100%;
+            transition: border-color .15s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--cyan);
+        }
+
+        .form-input::placeholder {
+            color: var(--t3);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* ─── SCAN BOX ─── */
+        .scan-box {
+            border: 2px dashed var(--border2);
+            border-radius: var(--r);
+            padding: 32px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all .2s;
+            position: relative;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .scan-box:active {
+            border-color: var(--cyan);
+            background: rgba(34, 211, 238, .04);
+        }
+
+        .scan-corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: var(--cyan);
+            border-style: solid;
+        }
+
+        .sc-tl {
+            top: 10px;
+            left: 10px;
+            border-width: 2px 0 0 2px;
+            border-radius: 3px 0 0 0;
+        }
+
+        .sc-tr {
+            top: 10px;
+            right: 10px;
+            border-width: 2px 2px 0 0;
+            border-radius: 0 3px 0 0;
+        }
+
+        .sc-bl {
+            bottom: 10px;
+            left: 10px;
+            border-width: 0 0 2px 2px;
+            border-radius: 0 0 0 3px;
+        }
+
+        .sc-br {
+            bottom: 10px;
+            right: 10px;
+            border-width: 0 2px 2px 0;
+            border-radius: 0 0 3px 0;
+        }
+
+        .scan-result {
+            background: rgba(34, 211, 238, .08);
+            border: 1px solid rgba(34, 211, 238, .3);
+            border-radius: var(--rs);
+            padding: 13px;
+            margin-top: 12px;
+        }
+
+        /* ─── PROFILE AVATAR ─── */
+        .profile-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--cyan), var(--purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 900;
+            color: #0d1117;
+            flex-shrink: 0;
+        }
+
+        .avatar-sm {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--cyan), var(--purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 900;
+            color: #0d1117;
+        }
+
+        /* ─── ADD MODAL ─── */
+        .add-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .85);
+            z-index: 500;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .add-modal.open {
+            display: flex;
+        }
+
+        .add-modal-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--r) var(--r) 0 0;
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp .25s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%)
+            }
+
+            to {
+                transform: translateY(0)
+            }
+        }
+
+        .add-modal-box::-webkit-scrollbar {
+            display: none;
+        }
+
+        .modal-drag {
+            width: 40px;
+            height: 4px;
+            background: var(--bg3);
+            border-radius: 2px;
+            margin: 0 auto 16px;
+        }
+
+        /* ─── TOAST ─── */
+        .toast {
+            position: fixed;
+            bottom: calc(var(--nav-h) + 12px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card2);
+            border: 1px solid var(--border);
+            color: var(--t1);
+            padding: 11px 20px;
+            border-radius: 25px;
+            font-size: 13px;
+            font-weight: 700;
+            z-index: 999;
+            display: none;
+            white-space: nowrap;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, .5);
+        }
+
+        /* ─── SCROLLBAR ─── */
+        *::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background: var(--bg3);
+            border-radius: 2px;
+        }
+
+        /* ─── SENSOR CHIPS ─── */
+        .sensor-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .sensor-chip {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--rs);
+            padding: 10px 12px;
+            flex: 1;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .sensor-val {
+            font-size: 18px;
+            font-weight: 900;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1;
+        }
+
+        .sensor-lbl {
+            font-size: 10px;
+            color: var(--t2);
+            font-weight: 700;
+            margin-top: 3px;
+        }
+
+        /* ─── ACHIEVE GRID ─── */
+        .achieve-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+        }
+
+        .achieve-card {
+            background: var(--bg3);
+            border-radius: var(--rs);
+            padding: 12px;
+            text-align: center;
+        }
+
+        .achieve-icon {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .achieve-name {
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .achieve-sub {
+            font-size: 10px;
+            color: var(--t2);
+            font-weight: 600;
+        }
+
+        /* ─── LOADING SPINNER ─── */
+        .spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid var(--bg3);
+            border-top-color: var(--cyan);
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-logo">
+            <div class="logo-icon">🥦</div>
+            <span class="logo-text">FridgeAI-Nexus</span>
+        </div>
+        <div class="header-right">
+            <button class="hdr-btn" onclick="goPage('notifications')" title="Notifications">
+                🔔<div class="notif-dot" id="notif-dot"></div>
+            </button>
+            <div class="avatar-sm" onclick="goPage('profile')" style="cursor:pointer">R</div>
+        </div>
+    </header>
+
+    <!-- SCROLL AREA -->
+    <div class="scroll-area" id="scroll-area">
+
+        <!-- ══ DASHBOARD ══ -->
+        <div class="page active" id="page-dashboard">
+            <div class="pg-title">🏠 Dashboard</div>
+
+            <div class="alert alert-warn">
+                ⚠️ <div><strong>4 items expiring soon!</strong><br>Spinach, Eggs, Tomatoes, Yogurt</div>
+                <button class="btn btn-sm" style="background:var(--yellow);color:#0d1117;margin-left:auto;flex-shrink:0"
+                    onclick="goPage('recipes')">Recipes →</button>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-box">
+                    <div class="stat-label">Health Score</div>
+                    <div class="stat-value" style="color:var(--cyan)">78</div>
+                    <div class="stat-hint">/ 100</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Items in Fridge</div>
+                    <div class="stat-value" id="dash-count">16</div>
+                    <div class="stat-hint">across 3 zones</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Expiring Soon</div>
+                    <div class="stat-value" style="color:var(--red)">4</div>
+                    <div class="stat-hint">within 48 hrs</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Waste Saved</div>
+                    <div class="stat-value" style="color:var(--green)">72%</div>
+                    <div class="stat-hint">this month</div>
+                </div>
+            </div>
+
+            <div class="sensor-row">
+                <div class="sensor-chip">
+                    <div class="sensor-val" style="color:var(--cyan)">4.3°C</div>
+                    <div class="sensor-lbl">Temp ✓</div>
+                </div>
+                <div class="sensor-chip">
+                    <div class="sensor-val" style="color:var(--green)">64%</div>
+                    <div class="sensor-lbl">Humidity ✓</div>
+                </div>
+                <div class="sensor-chip">
+                    <div class="sensor-val" style="color:var(--yellow)">23</div>
+                    <div class="sensor-lbl">Door Opens ⚠</div>
+                </div>
+                <div class="sensor-chip">
+                    <div class="sensor-val" style="color:var(--purple)">1.2kWh</div>
+                    <div class="sensor-lbl">Energy Today</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Your Fridge</div>
+                <div id="dash-food-list"></div>
+                <button class="btn btn-outline btn-full" style="margin-top:10px" onclick="goPage('inventory')">View All
+                    Items →</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Monthly Performance</div>
+                <div class="metric">
+                    <div class="metric-label">Food Waste Saved</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width:72%;background:var(--green)"></div>
+                    </div>
+                    <div class="metric-val" style="color:var(--green)">72%</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Used Before Expiry</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width:85%;background:var(--cyan)"></div>
+                    </div>
+                    <div class="metric-val" style="color:var(--cyan)">85%</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Grocery Accuracy</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width:91%;background:var(--purple)"></div>
+                    </div>
+                    <div class="metric-val" style="color:var(--purple)">91%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ INVENTORY ══ -->
+        <div class="page" id="page-inventory">
+            <div class="pg-title">📦 Inventory</div>
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+                <input class="form-input" style="flex:1" placeholder="🔍 Search items…" oninput="searchInv(this.value)"
+                    id="inv-search">
+                <button class="btn btn-primary" onclick="openAddModal()">＋ Add</button>
+            </div>
+            <div class="tabs" id="inv-tabs">
+                <button class="tab-btn active" onclick="filterInv('all',this)">All</button>
+                <button class="tab-btn" onclick="filterInv('fresh',this)">✅ Fresh</button>
+                <button class="tab-btn" onclick="filterInv('soon',this)">⚠️ Soon</button>
+                <button class="tab-btn" onclick="filterInv('expired',this)">🚨 Expired</button>
+                <button class="tab-btn" onclick="filterInv('Dairy',this)">🥛 Dairy</button>
+                <button class="tab-btn" onclick="filterInv('Vegetables',this)">🥦 Veg</button>
+                <button class="tab-btn" onclick="filterInv('Fruits',this)">🍎 Fruits</button>
+            </div>
+            <div class="card">
+                <div id="inv-list"></div>
+            </div>
+        </div>
+
+        <!-- ══ FRESHNESS ══ -->
+        <div class="page" id="page-freshness">
+            <div class="pg-title">🌿 Freshness Tracker</div>
+            <div class="pg-sub">ML-powered · Random Forest · 91.4% accuracy</div>
+            <div class="tabs" id="fresh-tabs">
+                <button class="tab-btn active" onclick="filterFresh('all',this)">All (16)</button>
+                <button class="tab-btn" onclick="filterFresh('fresh',this)">✅ Fresh (9)</button>
+                <button class="tab-btn" onclick="filterFresh('soon',this)">⚠️ Use Soon (4)</button>
+                <button class="tab-btn" onclick="filterFresh('expired',this)">🚨 Expired (3)</button>
+            </div>
+            <div class="card">
+                <div id="fresh-list"></div>
+            </div>
+        </div>
+
+        <!-- ══ RECIPES ══ -->
+        <div class="page" id="page-recipes">
+            <div class="pg-title">👨‍🍳 AI Recipes</div>
+            <div class="pg-sub">All vegetarian · 847 recipes · TF-IDF ranked</div>
+            <div class="alert alert-warn" style="margin-bottom:12px">
+                🔥 <div><strong>Use First:</strong> Spinach (expired), Yogurt (expired), Eggs (2 days), Tomatoes (3
+                    days)</div>
+            </div>
+            <div class="tabs" id="rec-tabs">
+                <button class="tab-btn active" onclick="filterRec('all',this)">🔥 Use First</button>
+                <button class="tab-btn" onclick="filterRec('quick',this)">⚡ Quick</button>
+                <button class="tab-btn" onclick="filterRec('indian',this)">🍛 Indian</button>
+                <button class="tab-btn" onclick="filterRec('continental',this)">🌍 Global</button>
+                <button class="tab-btn" onclick="filterRec('healthy',this)">💚 Healthy</button>
+            </div>
+            <div id="rec-grid"></div>
+        </div>
+
+        <!-- ══ VIDEOS ══ -->
+        <div class="page" id="page-videos">
+            <div class="pg-title">▶️ Recipe Videos</div>
+            <div class="pg-sub">All vegetarian · 1-minute YouTube Shorts</div>
+            <div class="tabs" id="vid-tabs">
+                <button class="tab-btn active" onclick="filterVids('all',this)">All (30)</button>
+                <button class="tab-btn" onclick="filterVids('breakfast',this)">🌅 Breakfast</button>
+                <button class="tab-btn" onclick="filterVids('lunch',this)">☀️ Lunch</button>
+                <button class="tab-btn" onclick="filterVids('dinner',this)">🌙 Dinner</button>
+                <button class="tab-btn" onclick="filterVids('snack',this)">🍿 Snacks</button>
+                <button class="tab-btn" onclick="filterVids('sweet',this)">🍮 Sweet</button>
+            </div>
+            <div class="vid-grid" id="vid-grid"></div>
+        </div>
+
+        <!-- ══ COMPATIBILITY ══ -->
+        <div class="page" id="page-checker">
+            <div class="pg-title">⚗️ Compatibility</div>
+            <div class="pg-sub">Food storage compatibility checker</div>
+            <div class="card">
+                <div class="card-title">Check Storage Compatibility</div>
+                <div class="compat-selects">
+                    <div>
+                        <div class="form-label">Food Item 1</div>
+                        <select class="food-select" id="c1" onchange="runCompat()">
+                            <option value="">— Select —</option>
+                            <optgroup label="🔴 Ethylene Producers">
+                                <option value="E" data-name="Apple">🍎 Apple</option>
+                                <option value="E" data-name="Banana">🍌 Banana</option>
+                                <option value="E" data-name="Mango">🥭 Mango</option>
+                                <option value="E" data-name="Tomato">🍅 Tomato</option>
+                                <option value="E" data-name="Avocado">🥑 Avocado</option>
+                                <option value="E" data-name="Pear">🍐 Pear</option>
+                                <option value="E" data-name="Kiwi">🥝 Kiwi</option>
+                            </optgroup>
+                            <optgroup label="🟡 Ethylene Sensitive">
+                                <option value="S" data-name="Spinach">🥬 Spinach</option>
+                                <option value="S" data-name="Broccoli">🥦 Broccoli</option>
+                                <option value="S" data-name="Carrot">🥕 Carrot</option>
+                                <option value="S" data-name="Lettuce">🥬 Lettuce</option>
+                                <option value="S" data-name="Cucumber">🥒 Cucumber</option>
+                                <option value="S" data-name="Capsicum">🫑 Capsicum</option>
+                            </optgroup>
+                            <optgroup label="🟢 Safe With Most">
+                                <option value="N" data-name="Orange">🍊 Orange</option>
+                                <option value="N" data-name="Lemon">🍋 Lemon</option>
+                                <option value="N" data-name="Grapes">🍇 Grapes</option>
+                                <option value="N" data-name="Strawberry">🍓 Strawberry</option>
+                            </optgroup>
+                            <optgroup label="⚪ Separate Storage">
+                                <option value="P" data-name="Onion">🧅 Onion</option>
+                                <option value="P" data-name="Potato">🥔 Potato</option>
+                                <option value="P" data-name="Garlic">🧄 Garlic</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="vs-circle">VS</div>
+                    <div>
+                        <div class="form-label">Food Item 2</div>
+                        <select class="food-select" id="c2" onchange="runCompat()">
+                            <option value="">— Select —</option>
+                            <optgroup label="🔴 Ethylene Producers">
+                                <option value="E" data-name="Apple">🍎 Apple</option>
+                                <option value="E" data-name="Banana">🍌 Banana</option>
+                                <option value="E" data-name="Mango">🥭 Mango</option>
+                                <option value="E" data-name="Tomato">🍅 Tomato</option>
+                                <option value="E" data-name="Avocado">🥑 Avocado</option>
+                                <option value="E" data-name="Pear">🍐 Pear</option>
+                                <option value="E" data-name="Kiwi">🥝 Kiwi</option>
+                            </optgroup>
+                            <optgroup label="🟡 Ethylene Sensitive">
+                                <option value="S" data-name="Spinach">🥬 Spinach</option>
+                                <option value="S" data-name="Broccoli">🥦 Broccoli</option>
+                                <option value="S" data-name="Carrot">🥕 Carrot</option>
+                                <option value="S" data-name="Lettuce">🥬 Lettuce</option>
+                                <option value="S" data-name="Cucumber">🥒 Cucumber</option>
+                                <option value="S" data-name="Capsicum">🫑 Capsicum</option>
+                            </optgroup>
+                            <optgroup label="🟢 Safe With Most">
+                                <option value="N" data-name="Orange">🍊 Orange</option>
+                                <option value="N" data-name="Lemon">🍋 Lemon</option>
+                                <option value="N" data-name="Grapes">🍇 Grapes</option>
+                                <option value="N" data-name="Strawberry">🍓 Strawberry</option>
+                            </optgroup>
+                            <optgroup label="⚪ Separate Storage">
+                                <option value="P" data-name="Onion">🧅 Onion</option>
+                                <option value="P" data-name="Potato">🥔 Potato</option>
+                                <option value="P" data-name="Garlic">🧄 Garlic</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-full" onclick="runCompat()">Check Compatibility →</button>
+                <div id="compat-out" style="margin-top:12px"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Ethylene Storage Reference</div>
+                <div class="eth-group">
+                    <div class="eth-label" style="color:var(--red)">⚠ Produces Ethylene — Keep Separate</div>
+                    <div class="eth-pills"><span class="eth-pill">🍎 Apple</span><span class="eth-pill">🍌
+                            Banana</span><span class="eth-pill">🥭 Mango</span><span class="eth-pill">🍅
+                            Tomato</span><span class="eth-pill">🥑 Avocado</span><span class="eth-pill">🍐
+                            Pear</span><span class="eth-pill">🥝 Kiwi</span></div>
+                </div>
+                <div class="eth-group">
+                    <div class="eth-label" style="color:var(--yellow)">🛡 Sensitive to Ethylene</div>
+                    <div class="eth-pills"><span class="eth-pill">🥕 Carrot</span><span class="eth-pill">🥦
+                            Broccoli</span><span class="eth-pill">🥬 Spinach</span><span class="eth-pill">🥬
+                            Lettuce</span><span class="eth-pill">🥒 Cucumber</span><span class="eth-pill">🫑
+                            Capsicum</span></div>
+                </div>
+                <div class="eth-group">
+                    <div class="eth-label" style="color:var(--green)">✓ Safe With Most Items</div>
+                    <div class="eth-pills"><span class="eth-pill">🍊 Orange</span><span class="eth-pill">🍋
+                            Lemon</span><span class="eth-pill">🍇 Grapes</span><span class="eth-pill">🍓
+                            Strawberry</span><span class="eth-pill">🥛 Dairy (sealed)</span></div>
+                </div>
+                <div class="eth-group">
+                    <div class="eth-label" style="color:var(--purple)">📦 Store Separately</div>
+                    <div class="eth-pills"><span class="eth-pill">🧅 Onion</span><span class="eth-pill">🥔
+                            Potato</span><span class="eth-pill">🧄 Garlic</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ FRIDGE ZONES ══ -->
+        <div class="page" id="page-zones">
+            <div class="pg-title">❄️ Fridge Zones</div>
+            <div class="pg-sub">Live sensor data · Raspberry Pi + DHT11</div>
+            <div class="alert alert-danger" style="margin-bottom:12px">⚠️ Storage conflict in Crisper: Apple + Spinach —
+                Move Apple immediately!</div>
+            <div class="zone-grid">
+                <div class="zone-card">
+                    <div class="zone-name" style="color:var(--cyan)">Main Shelf</div>
+                    <div class="zone-temp">4°C · 58% RH</div>
+                    <div class="food-item">
+                        <div class="fi-emoji">🥛</div>
+                        <div class="fi-info">
+                            <div class="fi-name">Full Cream Milk</div>
+                        </div><span class="fi-badge badge-fresh">Fresh</span>
+                    </div>
+                    <div class="food-item">
+                        <div class="fi-emoji">🧀</div>
+                        <div class="fi-info">
+                            <div class="fi-name">Cheddar Cheese</div>
+                        </div><span class="fi-badge badge-fresh">Fresh</span>
+                    </div>
+                    <div class="food-item">
+                        <div class="fi-emoji">🧆</div>
+                        <div class="fi-info">
+                            <div class="fi-name">Paneer</div>
+                        </div><span class="fi-badge badge-fresh">Fresh</span>
+                    </div>
+                    <div class="food-item">
+                        <div class="fi-emoji">🍶</div>
+                        <div class="fi-info">
+                            <div class="fi-name">Yogurt / Curd</div>
+                        </div><span class="fi-badge badge-expired">Expired</span>
+                    </div>
+                </div>
+                <div class="zone-card">
+                    <div class="zone-name" style="color:var(--green)">Crisper Drawer</div>
+                    <div class="zone-temp">3°C · 78% RH</div>
+                    <div class="food-item">
+                        <div class="fi-emoji">🥬</div>
+                        <div class="fi-info">
+                            <div class="fi-name">Spinach</div>
+                        </div><span class="fi-badge badge-expired">Expired</span>
+                    </div>
+                    <div class="food-item">
+                        <div class="fi-emoji">🍅</div>
+                        <div class="fi-info">
+                            <div class="fi-name">Tomatoes</div>
+                        </div><span class="fi-badge badge-soon">Use Soon</span>
+                    </div>
+                    <div class="food-item">
+                        <div class="fi-emoji">🥕</div>
+                        <div class="fi-info">
+                            <div class="fi-name">Carrots</div>
+                        </div><span class="fi-badge badge-fresh">Fresh</span>
+                    </div>
+                    <div class="food-item">
+                        <div class="fi-emoji">🍎</div>
+                        <div class="fi-info">
+                            <div class="fi-name">Apple</div>
+                        </div><span class="fi-badge" style="background:rgba(251,191,36,.15);color:var(--yellow)">⚠
+                            Conflict!</span>
+                    </div>
+                    <div class="zone-conflict">⚠️ Apple releases ethylene gas — Spinach shelf life reduced 60%. Move
+                        Apple to Door Shelf.</div>
+                </div>
+                <div class="zone-card">
+                    <div class="zone-name" style="color:var(--purple)">Door Shelf</div>
+                    <div class="zone-temp">6°C · 55% RH</div>
+                    <div class="food-item">
+                        <div class="fi-emoji">🥚</div>
+                        <div class="fi-info">
+                            <div class="fi-name">Eggs (6 pcs)</div>
+                        </div><span class="fi-badge badge-soon">Use Soon</span>
+                    </div>
+                    <div class="food-item">
+                        <div class="fi-emoji">🍋</div>
+                        <div class="fi-info">
+                            <div class="fi-name">Lemon</div>
+                        </div><span class="fi-badge badge-fresh">Fresh</span>
+                    </div>
+                    <div class="food-item">
+                        <div class="fi-emoji">🍇</div>
+                        <div class="fi-info">
+                            <div class="fi-name">Grapes</div>
+                        </div><span class="fi-badge badge-fresh">Fresh</span>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-row" style="margin-top:10px">
+                <div class="stat-box">
+                    <div class="stat-label">Avg Temp</div>
+                    <div class="stat-value" style="color:var(--cyan);font-size:20px">4.3°C</div>
+                    <div class="stat-hint">✓ Optimal</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Avg Humidity</div>
+                    <div class="stat-value" style="color:var(--green);font-size:20px">64%</div>
+                    <div class="stat-hint">✓ Good</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ SHOPPING LIST ══ -->
+        <div class="page" id="page-grocery">
+            <div class="pg-title">🛒 Shopping List</div>
+            <button class="btn btn-primary btn-full" style="margin-bottom:12px" onclick="openShopModal()">＋ Add Item to
+                List</button>
+            <div class="card">
+                <div class="card-title" style="color:var(--cyan)">🤖 AI Predicted (Running Low)</div>
+                <div id="shop-ai-list"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">📝 Manually Added</div>
+                <div id="shop-manual-list"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Monthly Waste Reduction</div>
+                <div class="metric">
+                    <div class="metric-label">Food Waste Saved</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width:72%;background:var(--green)"></div>
+                    </div>
+                    <div class="metric-val" style="color:var(--green)">72%</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Used Before Expiry</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width:85%;background:var(--cyan)"></div>
+                    </div>
+                    <div class="metric-val" style="color:var(--cyan)">85%</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Grocery Accuracy</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width:91%;background:var(--purple)"></div>
+                    </div>
+                    <div class="metric-val" style="color:var(--purple)">91%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ NOTIFICATIONS ══ -->
+        <div class="page" id="page-notifications">
+            <div class="pg-title">🔔 Notifications</div>
+            <div class="card">
+                <div id="notif-list"></div>
+            </div>
+        </div>
+
+        <!-- ══ ENERGY ══ -->
+        <div class="page" id="page-energy">
+            <div class="pg-title">⚡ Energy Mode</div>
+            <div class="card">
+                <div class="card-title">Select Cooling Mode</div>
+                <button class="energy-btn active" id="em-0" onclick="pickEnergy(0)"><span class="em-icon">❄️</span>
+                    <div class="em-info">
+                        <div class="em-name">Optimal Cooling</div>
+                        <div class="em-desc">4°C · Best for mixed storage</div>
+                    </div>
+                    <div class="em-check">✓</div>
+                </button>
+                <button class="energy-btn" id="em-1" onclick="pickEnergy(1)"><span class="em-icon">⚡</span>
+                    <div class="em-info">
+                        <div class="em-name">Eco Save Mode</div>
+                        <div class="em-desc">5°C · Saves 20% energy</div>
+                    </div>
+                    <div class="em-check"></div>
+                </button>
+                <button class="energy-btn" id="em-2" onclick="pickEnergy(2)"><span class="em-icon">🥩</span>
+                    <div class="em-info">
+                        <div class="em-name">Deep Chill</div>
+                        <div class="em-desc">2°C · Best for vegetables</div>
+                    </div>
+                    <div class="em-check"></div>
+                </button>
+                <button class="energy-btn" id="em-3" onclick="pickEnergy(3)"><span class="em-icon">🌙</span>
+                    <div class="em-info">
+                        <div class="em-name">Night Mode</div>
+                        <div class="em-desc">6°C · Silent · 12am–6am</div>
+                    </div>
+                    <div class="em-check"></div>
+                </button>
+                <button class="energy-btn" id="em-4" onclick="pickEnergy(4)"><span class="em-icon">🧊</span>
+                    <div class="em-info">
+                        <div class="em-name">Quick Freeze</div>
+                        <div class="em-desc">-2°C · Rapid cooling</div>
+                    </div>
+                    <div class="em-check"></div>
+                </button>
+                <div id="em-confirm" style="display:none" class="alert alert-info" style="margin-top:8px"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Energy Stats</div>
+                <div class="sensor-row">
+                    <div class="sensor-chip">
+                        <div class="sensor-val" style="color:var(--green)">1.2</div>
+                        <div class="sensor-lbl">kWh Today</div>
+                    </div>
+                    <div class="sensor-chip">
+                        <div class="sensor-val" style="color:var(--cyan)">34</div>
+                        <div class="sensor-lbl">kWh Month</div>
+                    </div>
+                    <div class="sensor-chip">
+                        <div class="sensor-val" style="color:var(--purple)">82%</div>
+                        <div class="sensor-lbl">Efficiency</div>
+                    </div>
+                </div>
+                <div class="card-title">Temperature Settings</div>
+                <div class="form-group">
+                    <div class="form-label">Main Shelf: <span id="t1v" style="color:var(--cyan)">4°C</span></div>
+                    <input type="range" min="1" max="8" value="4" style="width:100%;accent-color:var(--cyan)"
+                        oninput="document.getElementById('t1v').textContent=this.value+'°C'">
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Crisper: <span id="t2v" style="color:var(--green)">3°C</span></div>
+                    <input type="range" min="1" max="6" value="3" style="width:100%;accent-color:var(--green)"
+                        oninput="document.getElementById('t2v').textContent=this.value+'°C'">
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Door: <span id="t3v" style="color:var(--purple)">6°C</span></div>
+                    <input type="range" min="2" max="9" value="6" style="width:100%;accent-color:var(--purple)"
+                        oninput="document.getElementById('t3v').textContent=this.value+'°C'">
+                </div>
+                <button class="btn btn-primary btn-full" onclick="showToast('✓ Temperature settings saved!')">Save
+                    Temperature Settings</button>
+            </div>
+        </div>
+
+        <!-- ══ ADD FOOD ══ -->
+        <div class="page" id="page-addfood">
+            <div class="pg-title">➕ Add Food Item</div>
+            <div class="tabs">
+                <button class="tab-btn active" id="scan-t-cam" onclick="switchScan('cam',this)">📷 Camera AI</button>
+                <button class="tab-btn" id="scan-t-bar" onclick="switchScan('bar',this)">🔲 Barcode</button>
+                <button class="tab-btn" id="scan-t-man" onclick="switchScan('man',this)">✏️ Manual</button>
+            </div>
+
+            <div id="scan-cam">
+                <div class="scan-box" onclick="doScan()">
+                    <div class="scan-corner sc-tl"></div>
+                    <div class="scan-corner sc-tr"></div>
+                    <div class="scan-corner sc-bl"></div>
+                    <div class="scan-corner sc-br"></div>
+                    <div style="font-size:48px;margin-bottom:10px">📷</div>
+                    <div style="font-size:15px;font-weight:800;margin-bottom:5px">Tap to Scan Food Item</div>
+                    <div style="font-size:12px;color:var(--t2);font-weight:600">YOLOv5 AI · Detects 20+ categories</div>
+                </div>
+                <div id="scan-result" class="scan-result" style="display:none">
+                    <div style="font-size:13px;font-weight:800;color:var(--cyan);margin-bottom:8px">🤖 AI Detection
+                        Result</div>
+                    <div id="scan-result-text" style="font-size:13px;font-weight:600;margin-bottom:11px"></div>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn btn-success" onclick="acceptScan()">✓ Add to Fridge</button>
+                        <button class="btn btn-outline"
+                            onclick="document.getElementById('scan-result').style.display='none'">Rescan</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="scan-bar" style="display:none">
+                <div class="scan-box" onclick="doBarcode()">
+                    <div class="scan-corner sc-tl"></div>
+                    <div class="scan-corner sc-tr"></div>
+                    <div class="scan-corner sc-bl"></div>
+                    <div class="scan-corner sc-br"></div>
+                    <div style="font-size:48px;margin-bottom:10px">🔲</div>
+                    <div style="font-size:15px;font-weight:800;margin-bottom:5px">Tap to Scan Barcode</div>
+                    <div style="font-size:12px;color:var(--t2);font-weight:600">For packaged goods · Auto-fills info
+                    </div>
+                </div>
+                <div id="bar-result" class="scan-result" style="display:none">
+                    <div style="font-size:13px;font-weight:800;color:var(--cyan);margin-bottom:8px">📦 Barcode Scanned
+                    </div>
+                    <div id="bar-result-text" style="font-size:13px;font-weight:600;margin-bottom:11px"></div>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn btn-success" onclick="acceptBarcode()">✓ Add to Fridge</button>
+                        <button class="btn btn-outline"
+                            onclick="document.getElementById('bar-result').style.display='none'">Rescan</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="scan-man" style="display:none">
+                <div class="alert alert-info">✏️ Fill in the details below to add manually</div>
+            </div>
+
+            <div class="card" style="margin-top:12px">
+                <div class="card-title">Item Details</div>
+                <div class="form-group">
+                    <div class="form-label">Food Item Name *</div><input class="form-input" id="af-name"
+                        placeholder="e.g. Amul Full Cream Milk 500ml">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <div class="form-label">Category</div>
+                        <select class="form-select" id="af-cat">
+                            <option>Dairy</option>
+                            <option>Vegetables</option>
+                            <option>Fruits</option>
+                            <option>Grains</option>
+                            <option>Beverages</option>
+                            <option>Condiments</option>
+                            <option>Leftovers</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">Storage Zone</div>
+                        <select class="form-select" id="af-zone">
+                            <option>Main Shelf</option>
+                            <option>Crisper Drawer</option>
+                            <option>Door Shelf</option>
+                            <option>Freezer</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <div class="form-label">Quantity</div><input class="form-input" id="af-qty"
+                            placeholder="e.g. 500ml">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">Expiry Date</div><input class="form-input" type="date" id="af-exp">
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-full" onclick="addFoodItem()">＋ Add to Fridge</button>
+                <div id="af-ok" style="display:none;margin-top:10px" class="alert alert-success">✓ Item added to your
+                    fridge successfully!</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Recently Added</div>
+                <div id="recent-list"></div>
+            </div>
+        </div>
+
+        <!-- ══ PROFILE ══ -->
+        <div class="page" id="page-profile">
+            <div class="pg-title">👤 Profile</div>
+            <div class="card">
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+                    <div class="profile-avatar" id="profile-av">R</div>
+                    <div>
+                        <div style="font-size:17px;font-weight:900" id="profile-display-name">Rahul Sharma</div>
+                        <div style="font-size:12px;color:var(--t2);font-weight:600" id="profile-display-email">
+                            rahul@example.com</div>
+                        <div style="font-size:11px;color:var(--cyan);font-weight:700;margin-top:3px">● FridgeAI-Nexus
+                            Pro</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Display Name</div><input class="form-input" id="p-name"
+                        value="Rahul Sharma">
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Email</div><input class="form-input" id="p-email" type="email"
+                        value="rahul@example.com">
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Dietary Preference</div>
+                    <select class="form-select" id="p-diet">
+                        <option>Vegetarian</option>
+                        <option>Vegan</option>
+                        <option>Jain</option>
+                        <option>Keto (Veg)</option>
+                        <option>Gluten-Free (Veg)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Household Size</div>
+                    <select class="form-select" id="p-fam">
+                        <option>Just me</option>
+                        <option>2 members</option>
+                        <option>3–4 members</option>
+                        <option>5+ members</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Cuisine Preferences</div>
+                    <select class="form-select" id="p-cuisine">
+                        <option>Indian</option>
+                        <option>Continental</option>
+                        <option>Asian</option>
+                        <option>Mediterranean</option>
+                        <option>All cuisines</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary btn-full" onclick="saveProfile()">Save Profile Changes</button>
+                <div id="p-ok" style="display:none;margin-top:10px" class="alert alert-success">✓ Profile updated
+                    successfully!</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Achievements</div>
+                <div class="achieve-grid">
+                    <div class="achieve-card">
+                        <div class="achieve-icon">♻️</div>
+                        <div class="achieve-name">Waste Warrior</div>
+                        <div class="achieve-sub">Saved 72% food waste</div>
+                    </div>
+                    <div class="achieve-card">
+                        <div class="achieve-icon">👨‍🍳</div>
+                        <div class="achieve-name">Recipe Master</div>
+                        <div class="achieve-sub">Cooked 50+ recipes</div>
+                    </div>
+                    <div class="achieve-card">
+                        <div class="achieve-icon">🌡️</div>
+                        <div class="achieve-name">Smart Storer</div>
+                        <div class="achieve-sub">30 days optimal temp</div>
+                    </div>
+                    <div class="achieve-card">
+                        <div class="achieve-icon">⚡</div>
+                        <div class="achieve-name">Eco Saver</div>
+                        <div class="achieve-sub">Saved 12 kWh energy</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- end scroll-area -->
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" data-page="dashboard" onclick="goPage('dashboard')"><span
+                class="nb-ic">🏠</span>Home</button>
+        <button class="nav-btn" data-page="inventory" onclick="goPage('inventory')"><span
+                class="nb-ic">📦</span>Items</button>
+        <button class="nav-btn" data-page="recipes" onclick="goPage('recipes')"><span
+                class="nb-ic">👨‍🍳</span>Recipes</button>
+        <button class="nav-btn" data-page="videos" onclick="goPage('videos')"><span
+                class="nb-ic">▶️</span>Videos</button>
+        <button class="nav-btn" data-page="more" onclick="toggleMore()"><span class="nb-ic">⋯</span>More</button>
+    </nav>
+
+    <!-- MORE MENU -->
+    <div id="more-menu" style="display:none;position:fixed;bottom:calc(var(--nav-h) + 8px);right:8px;
+  background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  z-index:200;min-width:200px;padding:8px;box-shadow:0 8px 32px rgba(0,0,0,.5);">
+        <div onclick="goPage('freshness');closeMore()"
+            style="padding:11px 14px;cursor:pointer;border-radius:var(--rs);font-size:13px;font-weight:700;display:flex;gap:10px;align-items:center"
+            onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">🌿 Freshness Tracker
+        </div>
+        <div onclick="goPage('checker');closeMore()"
+            style="padding:11px 14px;cursor:pointer;border-radius:var(--rs);font-size:13px;font-weight:700;display:flex;gap:10px;align-items:center"
+            onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">⚗️ Compatibility
+            Checker</div>
+        <div onclick="goPage('zones');closeMore()"
+            style="padding:11px 14px;cursor:pointer;border-radius:var(--rs);font-size:13px;font-weight:700;display:flex;gap:10px;align-items:center"
+            onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">❄️ Fridge Zones</div>
+        <div onclick="goPage('grocery');closeMore()"
+            style="padding:11px 14px;cursor:pointer;border-radius:var(--rs);font-size:13px;font-weight:700;display:flex;gap:10px;align-items:center"
+            onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">🛒 Shopping List
+        </div>
+        <div onclick="goPage('notifications');closeMore()"
+            style="padding:11px 14px;cursor:pointer;border-radius:var(--rs);font-size:13px;font-weight:700;display:flex;gap:10px;align-items:center"
+            onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">🔔 Notifications
+        </div>
+        <div onclick="goPage('energy');closeMore()"
+            style="padding:11px 14px;cursor:pointer;border-radius:var(--rs);font-size:13px;font-weight:700;display:flex;gap:10px;align-items:center"
+            onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">⚡ Energy Mode</div>
+        <div onclick="goPage('addfood');closeMore()"
+            style="padding:11px 14px;cursor:pointer;border-radius:var(--rs);font-size:13px;font-weight:700;display:flex;gap:10px;align-items:center"
+            onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">➕ Add Food Item</div>
+        <div onclick="goPage('profile');closeMore()"
+            style="padding:11px 14px;cursor:pointer;border-radius:var(--rs);font-size:13px;font-weight:700;display:flex;gap:10px;align-items:center"
+            onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">👤 Profile</div>
+    </div>
+
+    <!-- VIDEO MODAL -->
+    <div class="modal-overlay" id="vid-modal">
+        <div class="modal-box">
+            <div class="modal-head">
+                <div class="modal-title" id="vid-modal-title">Recipe Video</div>
+                <button class="modal-close" onclick="closeVidModal()">✕</button>
+            </div>
+            <div class="vid-frame">
+                <iframe id="vid-iframe" src="" allowfullscreen allow="autoplay;encrypted-media;picture-in-picture"
+                    loading="lazy"></iframe>
+            </div>
+            <div class="modal-footer">🎬 1-minute vegetarian recipe · YouTube</div>
+        </div>
+    </div>
+
+    <!-- ADD ITEM MODAL (slide-up) -->
+    <div class="add-modal" id="add-modal">
+        <div class="add-modal-box">
+            <div class="modal-drag"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                <div style="font-size:16px;font-weight:900">➕ Add Food Item</div>
+                <button class="modal-close" onclick="closeAddModal()">✕</button>
+            </div>
+            <div class="form-group">
+                <div class="form-label">Item Name *</div><input class="form-input" id="am-name"
+                    placeholder="e.g. Tomatoes 500g">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <div class="form-label">Category</div>
+                    <select class="form-select" id="am-cat">
+                        <option>Vegetables</option>
+                        <option>Dairy</option>
+                        <option>Fruits</option>
+                        <option>Grains</option>
+                        <option>Beverages</option>
+                        <option>Condiments</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Zone</div>
+                    <select class="form-select" id="am-zone">
+                        <option>Main Shelf</option>
+                        <option>Crisper Drawer</option>
+                        <option>Door Shelf</option>
+                        <option>Freezer</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <div class="form-label">Quantity</div><input class="form-input" id="am-qty" placeholder="e.g. 500g">
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Expiry Date</div><input class="form-input" type="date" id="am-exp">
+                </div>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="addFromModal()">＋ Add to Fridge</button>
+        </div>
+    </div>
+
+    <!-- SHOPPING MODAL -->
+    <div class="add-modal" id="shop-modal">
+        <div class="add-modal-box">
+            <div class="modal-drag"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                <div style="font-size:16px;font-weight:900">🛒 Add Shopping Item</div>
+                <button class="modal-close" onclick="closeShopModal()">✕</button>
+            </div>
+            <div class="form-group">
+                <div class="form-label">Item Name *</div><input class="form-input" id="sm-name"
+                    placeholder="e.g. Onion 500g">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <div class="form-label">Category</div>
+                    <select class="form-select" id="sm-cat">
+                        <option>Vegetables</option>
+                        <option>Dairy</option>
+                        <option>Fruits</option>
+                        <option>Grains</option>
+                        <option>Bakery</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Quantity</div><input class="form-input" id="sm-qty" placeholder="e.g. 500g">
+                </div>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="addShopItem()">Add to Shopping List</button>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ════════════════════════════════
+        // DATA
+        // ════════════════════════════════
+        let FOODS = [
+            { e: '🥛', n: 'Full Cream Milk', m: 'Main Shelf · 3 days ago · 4°C', s: 'fresh', p: 70, cat: 'Dairy' },
+            { e: '🥚', n: 'Eggs (6 pcs)', m: 'Door Shelf · 10 days ago · 5°C', s: 'soon', p: 30, cat: 'Dairy' },
+            { e: '🥬', n: 'Spinach', m: 'Crisper · 7 days ago · 3°C · Conf:97%', s: 'expired', p: 3, cat: 'Vegetables' },
+            { e: '🧀', n: 'Cheddar Cheese 200g', m: 'Main Shelf · 1 day ago · 4°C', s: 'fresh', p: 92, cat: 'Dairy' },
+            { e: '🍅', n: 'Tomatoes (3 pcs)', m: 'Crisper · 5 days ago · 6°C', s: 'soon', p: 28, cat: 'Vegetables' },
+            { e: '🍶', n: 'Yogurt / Curd', m: 'Main Shelf · 6 days ago · 4°C · Conf:89%', s: 'expired', p: 2, cat: 'Dairy' },
+            { e: '🥕', n: 'Carrots (250g)', m: 'Crisper · 2 days ago · 3°C', s: 'fresh', p: 85, cat: 'Vegetables' },
+            { e: '🧆', n: 'Paneer (200g)', m: 'Main Shelf · 4 days ago · 4°C', s: 'fresh', p: 56, cat: 'Dairy' },
+            { e: '🍎', n: 'Apple (3 pcs)', m: 'Crisper · 6 days ago · 3°C ⚠️', s: 'soon', p: 42, cat: 'Fruits' },
+            { e: '🍋', n: 'Lemon (2 pcs)', m: 'Door Shelf · 5 days ago · 6°C', s: 'fresh', p: 66, cat: 'Fruits' },
+            { e: '🍇', n: 'Grapes', m: 'Door Shelf · 3 days ago · 6°C', s: 'fresh', p: 73, cat: 'Fruits' },
+            { e: '🫑', n: 'Capsicum (2 pcs)', m: 'Crisper · 4 days ago · 3°C', s: 'fresh', p: 61, cat: 'Vegetables' },
+            { e: '🥒', n: 'Cucumber', m: 'Crisper · 8 days ago · 3°C', s: 'expired', p: 0, cat: 'Vegetables' },
+            { e: '🧄', n: 'Garlic (1 pod)', m: 'Main Shelf · 1 day ago · 4°C', s: 'fresh', p: 96, cat: 'Vegetables' },
+            { e: '🧈', n: 'Butter (100g)', m: 'Door Shelf · 2 days ago · 6°C', s: 'fresh', p: 89, cat: 'Dairy' },
+            { e: '🫙', n: 'Pickle Jar', m: 'Door Shelf · 1 day ago · 6°C', s: 'fresh', p: 99, cat: 'Condiments' },
+        ];
+
+        const RECIPES = [
+            {
+                e: '🥬', n: 'Palak Paneer', t: '25 min', d: 'Medium', tag: 'Indian', cats: ['all', 'indian', 'healthy'],
+                urgency: '🚨 Use spinach NOW — expired!', uc: 'expired',
+                ing: [['🥬 Spinach', 'have'], ['🧆 Paneer', 'have'], ['+ Cream', 'need'], ['+ Spices', 'need']],
+                yt: 'p6o79G0BXCE'
+            },
+            {
+                e: '🍅', n: 'Tomato Rasam', t: '20 min', d: 'Easy', tag: 'Indian', cats: ['all', 'indian', 'quick'],
+                urgency: '⏳ Tomatoes expire in 3 days', uc: 'soon',
+                ing: [['🍅 Tomato', 'have'], ['🧄 Garlic', 'have'], ['+ Dal', 'need']],
+                yt: '_OdQvJjEBUY'
+            },
+            {
+                e: '🥗', n: 'Carrot Raita', t: '5 min', d: 'Easy', tag: 'Indian', cats: ['all', 'indian', 'quick', 'healthy'],
+                urgency: '', uc: '',
+                ing: [['🥕 Carrot', 'have'], ['🍶 Yogurt', 'have']],
+                yt: 'DJhDq-7Rrh0'
+            },
+            {
+                e: '🥕', n: 'Gajar Halwa', t: '35 min', d: 'Medium', tag: 'Indian Sweet', cats: ['all', 'indian'],
+                urgency: '', uc: '',
+                ing: [['🥕 Carrot', 'have'], ['🥛 Milk', 'have'], ['+ Sugar', 'need']],
+                yt: '6zVMnp4kgTo'
+            },
+            {
+                e: '🧆', n: 'Paneer Butter Masala', t: '30 min', d: 'Medium', tag: 'Indian', cats: ['all', 'indian'],
+                urgency: '', uc: '',
+                ing: [['🧆 Paneer', 'have'], ['🍅 Tomato', 'have'], ['+ Butter', 'need']],
+                yt: '3OHoqZYmn_0'
+            },
+            {
+                e: '🥙', n: 'Veg Wrap', t: '15 min', d: 'Easy', tag: 'Continental', cats: ['all', 'continental', 'quick'],
+                urgency: '', uc: '',
+                ing: [['🥕 Carrot', 'have'], ['🧀 Cheese', 'have'], ['+ Bread', 'need']],
+                yt: 'CY3EfFlhCHY'
+            },
+            {
+                e: '🫕', n: 'Dal Tadka', t: '30 min', d: 'Medium', tag: 'Indian', cats: ['all', 'indian'],
+                urgency: '', uc: '',
+                ing: [['🧄 Garlic', 'have'], ['+ Dal', 'need'], ['+ Spices', 'need']],
+                yt: 'M3fxDJi1GfI'
+            },
+            {
+                e: '🍲', n: 'Aloo Gobi Sabzi', t: '25 min', d: 'Easy', tag: 'Indian', cats: ['all', 'indian', 'healthy'],
+                urgency: '', uc: '',
+                ing: [['+ Potato', 'need'], ['+ Cauliflower', 'need'], ['🧄 Garlic', 'have']],
+                yt: 'WdlSSc6l2ug'
+            },
+            {
+                e: '🥦', n: 'Stir Fry Veggies', t: '10 min', d: 'Easy', tag: 'Continental', cats: ['all', 'continental', 'quick', 'healthy'],
+                urgency: '', uc: '',
+                ing: [['🥦 Broccoli', 'need'], ['🫑 Capsicum', 'have'], ['🥕 Carrot', 'have']],
+                yt: 'K1G5k7EG-Oc'
+            },
+        ];
+
+        const VIDEOS = [
+            // BREAKFAST — all vegetarian
+            { t: 'Masala Dosa — 1 Minute', cat: 'breakfast', dur: '1:00', e: '🥞', cui: 'Indian', yt: 'CvCiRPCVxas' },
+            { t: 'Poha Recipe Quick', cat: 'breakfast', dur: '0:58', e: '🍚', cui: 'Indian', yt: 'n_6x2t5hH3I' },
+            { t: 'Vegetable Upma 60 Sec', cat: 'breakfast', dur: '1:00', e: '🥣', cui: 'Indian', yt: 'K4ezqeL0I8A' },
+            { t: 'Aloo Paratha — 1 Min', cat: 'breakfast', dur: '1:00', e: '🫓', cui: 'Indian', yt: 'oVtq3nIXXsw' },
+            { t: 'Idli Sambar Quick', cat: 'breakfast', dur: '0:59', e: '🍢', cui: 'Indian', yt: 'A4EVKQ-PrKY' },
+            { t: 'Banana Smoothie Bowl', cat: 'breakfast', dur: '0:55', e: '🍌', cui: 'Healthy', yt: 'CvCiRPCVxas' },
+            // LUNCH — all vegetarian
+            { t: 'Palak Paneer 60 Seconds', cat: 'lunch', dur: '1:00', e: '🥬', cui: 'Indian', yt: 'p6o79G0BXCE' },
+            { t: 'Dal Tadka — 1 Min Tutorial', cat: 'lunch', dur: '1:00', e: '🫕', cui: 'Indian', yt: 'M3fxDJi1GfI' },
+            { t: 'Paneer Butter Masala Quick', cat: 'lunch', dur: '0:58', e: '🧆', cui: 'Indian', yt: '3OHoqZYmn_0' },
+            { t: 'Veg Fried Rice in 60s', cat: 'lunch', dur: '1:00', e: '🍳', cui: 'Asian', yt: 'K1G5k7EG-Oc' },
+            { t: 'Rajma Recipe Quick', cat: 'lunch', dur: '0:57', e: '🫘', cui: 'Indian', yt: 'gY8h7NVxBXU' },
+            { t: 'Tomato Pasta — 1 Min', cat: 'lunch', dur: '1:00', e: '🍝', cui: 'Italian', yt: '8QxBVVsNZSg' },
+            // DINNER — all vegetarian
+            { t: 'Aloo Gobi in 1 Minute', cat: 'dinner', dur: '1:00', e: '🥦', cui: 'Indian', yt: 'WdlSSc6l2ug' },
+            { t: 'Veg Khichdi Quick', cat: 'dinner', dur: '0:56', e: '🍲', cui: 'Indian', yt: 'ysmOGUFiiFw' },
+            { t: 'Pasta Aglio e Olio (Veg)', cat: 'dinner', dur: '1:00', e: '🍝', cui: 'Italian', yt: '_OdQvJjEBUY' },
+            { t: 'Jeera Rice — 1 Min Guide', cat: 'dinner', dur: '0:58', e: '🍚', cui: 'Indian', yt: 'DJhDq-7Rrh0' },
+            { t: 'Paneer Tikka Masala 60s', cat: 'dinner', dur: '1:00', e: '🍛', cui: 'Indian', yt: 'b1wfnqcVzPE' },
+            { t: 'Veg Biryani Quick Recipe', cat: 'dinner', dur: '1:00', e: '🍚', cui: 'Indian', yt: 'M3fxDJi1GfI' },
+            // SNACKS — all vegetarian
+            { t: 'Aloo Tikki — Quick Snack', cat: 'snack', dur: '1:00', e: '🥔', cui: 'Indian', yt: 'N9MJfKxWYnM' },
+            { t: 'Bread Pakora in 60 Seconds', cat: 'snack', dur: '0:59', e: '🍞', cui: 'Indian', yt: 'MNbFeMnWJFM' },
+            { t: 'Veg Nachos — 1 Min', cat: 'snack', dur: '1:00', e: '🧀', cui: 'Mexican', yt: '_YVCMbFfYuU' },
+            { t: 'Masala Popcorn 60 Sec', cat: 'snack', dur: '1:00', e: '🍿', cui: 'Indian', yt: 'ZyijSd3hMO4' },
+            { t: 'Samosa Chaat Quick', cat: 'snack', dur: '0:57', e: '🫓', cui: 'Indian', yt: '0ZLUMnjixWc' },
+            { t: 'Roasted Makhana Healthy', cat: 'snack', dur: '0:55', e: '🌰', cui: 'Indian', yt: 'T_bEkVe5qgI' },
+            // SWEET DISH — all vegetarian
+            { t: 'Gulab Jamun — 1 Minute', cat: 'sweet', dur: '1:00', e: '🍮', cui: 'Indian', yt: 'FJX1W8bGYlE' },
+            { t: 'Kheer in 60 Seconds', cat: 'sweet', dur: '0:59', e: '🍚', cui: 'Indian', yt: 'ZRRjq4XBFCE' },
+            { t: 'Gajar Halwa Quick Recipe', cat: 'sweet', dur: '1:00', e: '🥕', cui: 'Indian', yt: '6zVMnp4kgTo' },
+            { t: 'Besan Halwa 60s', cat: 'sweet', dur: '1:00', e: '🍫', cui: 'Indian', yt: 'etVRSVFBjzY' },
+            { t: 'Rasgulla — Quick Tutorial', cat: 'sweet', dur: '0:58', e: '⚪', cui: 'Indian', yt: 'fOarfqZHbnM' },
+            { t: 'Fruit Custard in 1 Minute', cat: 'sweet', dur: '0:55', e: '🍮', cui: 'Indian', yt: 'o0u3G0S-m9g' },
+        ];
+
+        let shopAI = [
+            { n: '🥛 Full Cream Milk 500ml', m: 'Predicted empty: Apr 24', u: 'u-soon', ul: '2 days', done: false },
+            { n: '🍶 Fresh Curd / Yogurt', m: 'Predicted empty: Now', u: 'u-exp', ul: 'Expired', done: false },
+            { n: '🥬 Fresh Spinach 100g', m: 'Predicted empty: Now', u: 'u-exp', ul: 'Expired', done: false },
+        ];
+        let shopManual = [
+            { n: '🧅 Onion 500g', m: 'Rahul · Today', u: 'u-ok', ul: 'Normal', done: false },
+            { n: '🫙 Ghee 1 jar', m: 'Rahul · Yesterday', u: 'u-ok', ul: 'Normal', done: true },
+            { n: '🥦 Broccoli 1 head', m: 'Priya · Yesterday', u: 'u-ok', ul: 'Normal', done: false },
+            { n: '🍞 Brown Bread 1 loaf', m: 'Rahul · Apr 20', u: 'u-ok', ul: 'Normal', done: false },
+        ];
+
+        const NOTIFS = [
+            { dot: 'var(--red)', t: '🥬 Spinach has Expired!', b: 'Spinach (Crisper, 3°C, 7 days) has exceeded freshness threshold. ML confidence: 97%. Discard immediately to prevent contamination of nearby items.', time: 'Just now · ML Alert', act: 'recipes', albl: 'View Recipes' },
+            { dot: 'var(--red)', t: '🍶 Yogurt / Curd Expired', b: 'Yogurt added 6 days ago has passed its safe window. Discard and replace with fresh curd. Consider Palak Paneer or Raita.', time: '2 hours ago · ML Alert', act: 'grocery', albl: 'Add to List' },
+            { dot: 'var(--yellow)', t: '🥚 Eggs expiring in ~2 days', b: '6 eggs added 10 days ago expire soon. Based on your pattern (~2/day). Make Masala Paratha or Egg Bhurji (veg style) today.', time: '3 hours ago · Grocery AI', act: 'recipes', albl: 'View Recipes' },
+            { dot: 'var(--orange)', t: '⚠️ Storage Conflict Detected', b: 'Apple and Spinach are in the same Crisper drawer. Ethylene from Apple reduces Spinach shelf life by 60%. Move Apple immediately.', time: 'Yesterday · Compat Engine', act: 'zones', albl: 'View Zones' },
+            { dot: 'var(--cyan)', t: '🥛 Milk runs out in ~2 days', b: 'Based on your 14-day usage (avg 200ml/day), your 500ml packet will be empty by Apr 24. Add to shopping list?', time: 'Today · Grocery Predictor', act: 'grocery', albl: '+ Add to List' },
+        ];
+
+        let recentAdded = [
+            { e: '🧀', n: 'Cheddar Cheese 200g', m: 'Added today · Main Shelf' },
+            { e: '🥕', n: 'Carrots 250g', m: 'Added yesterday · Crisper' },
+            { e: '🧆', n: 'Paneer 200g', m: 'Added 2 days ago · Main Shelf' },
+        ];
+
+        // ════════════════════════════════
+        // NAVIGATION
+        // ════════════════════════════════
+        function goPage(id) {
+            closeMore();
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            const pg = document.getElementById('page-' + id);
+            if (pg) {
+                pg.classList.add('active');
+                document.getElementById('scroll-area').scrollTop = 0;
+            }
+            const nb = document.querySelector('[data-page="' + id + '"]');
+            if (nb) nb.classList.add('active');
+            // Init on navigate
+            if (id === 'dashboard') renderDash();
+            if (id === 'inventory') renderInv(FOODS);
+            if (id === 'freshness') renderFresh('all');
+            if (id === 'recipes') renderRec('all');
+            if (id === 'videos') renderVids('all');
+            if (id === 'grocery') renderShop();
+            if (id === 'notifications') renderNotifs();
+            if (id === 'addfood') renderRecent();
+        }
+
+        let moreOpen = false;
+        function toggleMore() {
+            moreOpen = !moreOpen;
+            document.getElementById('more-menu').style.display = moreOpen ? 'block' : 'none';
+        }
+        function closeMore() {
+            moreOpen = false;
+            document.getElementById('more-menu').style.display = 'none';
+        }
+        document.addEventListener('click', function (e) {
+            const mm = document.getElementById('more-menu');
+            if (mm.style.display === 'block' && !mm.contains(e.target) && !e.target.closest('[onclick*="toggleMore"]')) {
+                closeMore();
+            }
+        });
+
+        // ════════════════════════════════
+        // FOOD ITEM HTML
+        // ════════════════════════════════
+        function mkFood(f) {
+            const col = f.s === 'fresh' ? 'var(--green)' : f.s === 'soon' ? 'var(--yellow)' : 'var(--red)';
+            const bcls = f.s === 'fresh' ? 'badge-fresh' : f.s === 'soon' ? 'badge-soon' : 'badge-expired';
+            const lbl = f.s === 'fresh' ? 'Fresh' : f.s === 'soon' ? 'Use Soon' : 'Expired';
+            return `<div class="food-item">
+    <div class="fi-emoji">${f.e}</div>
+    <div class="fi-info">
+      <div class="fi-name">${f.n}</div>
+      <div class="fi-meta">${f.m}</div>
+      <div class="fi-bar"><div class="fi-fill" style="width:${f.p}%;background:${col}"></div></div>
+    </div>
+    <span class="fi-badge ${bcls}">${lbl}</span>
+  </div>`;
+        }
+
+        // ════════════════════════════════
+        // DASHBOARD
+        // ════════════════════════════════
+        function renderDash() {
+            document.getElementById('dash-food-list').innerHTML = FOODS.slice(0, 7).map(mkFood).join('');
+            document.getElementById('dash-count').textContent = FOODS.length;
+        }
+
+        // ════════════════════════════════
+        // INVENTORY
+        // ════════════════════════════════
+        let invFilter = 'all', invSearch = '';
+        function renderInv(list) {
+            document.getElementById('inv-list').innerHTML = list.length
+                ? list.map(mkFood).join('')
+                : '<div style="padding:20px;text-align:center;color:var(--t2);font-weight:600">No items found</div>';
+        }
+        function searchInv(q) {
+            invSearch = q.toLowerCase();
+            applyInvFilter();
+        }
+        function filterInv(f, el) {
+            document.querySelectorAll('#inv-tabs .tab-btn').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            invFilter = f;
+            applyInvFilter();
+        }
+        function applyInvFilter() {
+            let list = FOODS;
+            if (invSearch) list = list.filter(f => f.n.toLowerCase().includes(invSearch));
+            if (invFilter !== 'all' && invFilter !== 'fresh' && invFilter !== 'soon' && invFilter !== 'expired')
+                list = list.filter(f => f.cat === invFilter);
+            else if (invFilter === 'fresh') list = list.filter(f => f.s === 'fresh');
+            else if (invFilter === 'soon') list = list.filter(f => f.s === 'soon');
+            else if (invFilter === 'expired') list = list.filter(f => f.s === 'expired');
+            renderInv(list);
+        }
+
+        // ════════════════════════════════
+        // FRESHNESS
+        // ════════════════════════════════
+        function renderFresh(filter) {
+            const list = filter === 'all' ? FOODS : FOODS.filter(f => f.s === filter);
+            document.getElementById('fresh-list').innerHTML = list.map(mkFood).join('');
+        }
+        function filterFresh(f, el) {
+            document.querySelectorAll('#fresh-tabs .tab-btn').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            renderFresh(f);
+        }
+
+        // ════════════════════════════════
+        // RECIPES
+        // ════════════════════════════════
+        function renderRec(type) {
+            const list = RECIPES.filter(r => r.cats.includes(type === 'all' ? 'all' : type));
+            const html = list.map(r => {
+                const urgColor = r.uc === 'expired' ? 'var(--red)' : r.uc === 'soon' ? 'var(--yellow)' : 'var(--t2)';
+                const chips = r.ing.map(i => `<span class="${i[1] === 'have' ? 'chip-have' : 'chip-need'}">${i[0]}</span>`).join('');
+                return `<div class="recipe-card" onclick="openVidModal('${r.yt}','${r.n.replace(/'/g, "\\'")}')">
+      <div class="recipe-body">
+        <div style="font-size:36px;margin-bottom:9px">${r.e}</div>
+        <div class="recipe-title">${r.n}</div>
+        <div class="recipe-meta">
+          <span>⏱ ${r.t}</span><span>·</span><span>${r.d}</span>
+          <span class="recipe-tag">${r.tag}</span>
+        </div>
+        <div class="ing-chips" style="margin-top:8px">${chips}</div>
+        ${r.urgency ? `<div class="recipe-urgency" style="color:${urgColor}">${r.urgency}</div>` : ''}
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openVidModal('${r.yt}','${r.n.replace(/'/g, "\\'")}')">▶️ Watch Recipe Video</button>
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showToast('Recipe saved to favourites!')">🔖 Save</button>
+        </div>
+      </div>
+    </div>`;
+            }).join('');
+            document.getElementById('rec-grid').innerHTML = html || '<div class="card" style="text-align:center;color:var(--t2);padding:24px">No recipes found for this filter</div>';
+        }
+        function filterRec(f, el) {
+            document.querySelectorAll('#rec-tabs .tab-btn').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            renderRec(f);
+        }
+
+        // ════════════════════════════════
+        // VIDEOS
+        // ════════════════════════════════
+        function renderVids(cat) {
+            const list = cat === 'all' ? VIDEOS : VIDEOS.filter(v => v.cat === cat);
+            const catIcons = { breakfast: '🌅', lunch: '☀️', dinner: '🌙', snack: '🍿', sweet: '🍮' };
+            document.getElementById('vid-grid').innerHTML = list.map(v => `
+    <div class="vid-card" onclick="openVidModal('${v.yt}','${v.t.replace(/'/g, "\\'")}')">
+      <div class="vid-thumb">
+        <img src="https://img.youtube.com/vi/${v.yt}/mqdefault.jpg" alt="${v.t}"
+          loading="lazy" onerror="this.parentElement.innerHTML='<div style=\\'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:36px\\'>${v.e}</div>'">
+        <div class="play-mini">▶️</div>
+        <div class="vid-dur">${v.dur}</div>
+      </div>
+      <div class="vid-info">
+        <div class="vid-title">${v.e} ${v.t}</div>
+        <div class="vid-meta">
+          ${catIcons[v.cat] || ''} ${v.cat} · ${v.cui}
+        </div>
+      </div>
+    </div>`).join('');
+        }
+        function filterVids(cat, el) {
+            document.querySelectorAll('#vid-tabs .tab-btn').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            renderVids(cat);
+        }
+
+        // ════════════════════════════════
+        // VIDEO MODAL
+        // ════════════════════════════════
+        function openVidModal(ytId, title) {
+            document.getElementById('vid-modal-title').textContent = title || 'Recipe Video';
+            document.getElementById('vid-iframe').src = 'https://www.youtube.com/embed/' + ytId + '?autoplay=1&rel=0&modestbranding=1';
+            document.getElementById('vid-modal').classList.add('open');
+        }
+        function closeVidModal() {
+            document.getElementById('vid-modal').classList.remove('open');
+            document.getElementById('vid-iframe').src = '';
+        }
+        document.getElementById('vid-modal').addEventListener('click', function (e) {
+            if (e.target === this) closeVidModal();
+        });
+
+        // ════════════════════════════════
+        // COMPATIBILITY CHECKER
+        // ════════════════════════════════
+        function runCompat() {
+            const s1 = document.getElementById('c1');
+            const s2 = document.getElementById('c2');
+            const v1 = s1.value;
+            const v2 = s2.value;
+            const out = document.getElementById('compat-out');
+            if (!v1 || !v2) { out.innerHTML = ''; return; }
+            const n1 = s1.options[s1.selectedIndex].dataset.name || s1.options[s1.selectedIndex].text;
+            const n2 = s2.options[s2.selectedIndex].dataset.name || s2.options[s2.selectedIndex].text;
+            let cls, icon, titleTxt, body;
+            if ((v1 === 'E' && v2 === 'S') || (v1 === 'S' && v2 === 'E')) {
+                cls = 'compat-unsafe'; icon = '✗'; titleTxt = 'Do NOT Store Together';
+                body = `<strong>${n1}</strong> and <strong>${n2}</strong> must not share the same drawer. Ethylene gas causes shelf life to drop by up to <strong>60%</strong>. Store ethylene producers (apples, bananas, mangoes) in a separate fruit drawer away from all leafy vegetables.`;
+            } else if (v1 === 'P' || v2 === 'P') {
+                cls = 'compat-warn'; icon = '⚠'; titleTxt = 'Use Dedicated Storage Zones';
+                body = `<strong>${n1 === 'P' ? n1 : n2}</strong> has a strong odour that can transfer to other foods. Keep it in a sealed container or dedicated zone away from dairy and leafy vegetables.`;
+            } else if (v1 === 'E' && v2 === 'E') {
+                cls = 'compat-warn'; icon = '⚠'; titleTxt = 'Store With Caution';
+                body = `Both <strong>${n1}</strong> and <strong>${n2}</strong> produce ethylene. They won't harm each other but combined ethylene may speed ripening. Use within 2-3 days.`;
+            } else {
+                cls = 'compat-safe'; icon = '✓'; titleTxt = 'Safe to Store Together';
+                body = `<strong>${n1}</strong> and <strong>${n2}</strong> are compatible — both are ethylene-neutral or have similar storage requirements. They can safely share the same fridge zone without affecting each other's freshness.`;
+            }
+            const color = cls === 'compat-safe' ? 'var(--green)' : cls === 'compat-unsafe' ? 'var(--red)' : 'var(--yellow)';
+            out.innerHTML = `<div class="compat-result ${cls}"><div class="compat-rtitle" style="color:${color}">${icon} ${titleTxt}</div><div class="compat-rbody">${body}</div></div>`;
+        }
+
+        // ════════════════════════════════
+        // SHOPPING LIST
+        // ════════════════════════════════
+        function renderShop() {
+            document.getElementById('shop-ai-list').innerHTML = shopAI.map((item, i) => `
+    <div class="shop-item">
+      <div class="shop-check ${item.done ? 'done' : ''}" onclick="toggleShop('ai',${i})">${item.done ? '✓' : ''}</div>
+      <div style="flex:1">
+        <div class="shop-name ${item.done ? 'done-txt' : ''}">${item.n}</div>
+        <div class="shop-sub">${item.m}</div>
+      </div>
+      <span class="urgency ${item.u}">${item.ul}</span>
+    </div>`).join('');
+            document.getElementById('shop-manual-list').innerHTML = shopManual.map((item, i) => `
+    <div class="shop-item">
+      <div class="shop-check ${item.done ? 'done' : ''}" onclick="toggleShop('manual',${i})">${item.done ? '✓' : ''}</div>
+      <div style="flex:1">
+        <div class="shop-name ${item.done ? 'done-txt' : ''}">${item.n}</div>
+        <div class="shop-sub">${item.m}</div>
+      </div>
+      <span class="urgency ${item.u}">${item.ul}</span>
+      <button onclick="removeShop(${i})" style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;padding:4px;margin-left:4px">✕</button>
+    </div>`).join('');
+        }
+        function toggleShop(list, i) {
+            if (list === 'ai') { shopAI[i].done = !shopAI[i].done; if (shopAI[i].done) showToast('✓ Marked as bought!'); }
+            else { shopManual[i].done = !shopManual[i].done; if (shopManual[i].done) showToast('✓ Marked as bought!'); }
+            renderShop();
+        }
+        function removeShop(i) {
+            const n = shopManual[i].n;
+            shopManual.splice(i, 1);
+            renderShop();
+            showToast('Removed ' + n);
+        }
+        function openShopModal() {
+            document.getElementById('shop-modal').classList.add('open');
+            setTimeout(() => document.getElementById('sm-name').focus(), 100);
+        }
+        function closeShopModal() {
+            document.getElementById('shop-modal').classList.remove('open');
+            document.getElementById('sm-name').value = '';
+            document.getElementById('sm-qty').value = '';
+        }
+        function addShopItem() {
+            const n = document.getElementById('sm-name').value.trim();
+            if (!n) { document.getElementById('sm-name').style.borderColor = 'var(--red)'; return; }
+            document.getElementById('sm-name').style.borderColor = '';
+            const q = document.getElementById('sm-qty').value || '';
+            const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+            const emojis = { Vegetables: '🥦', Dairy: '🥛', Fruits: '🍎', Grains: '🌾', Bakery: '🍞', Other: '🛍️' };
+            const cat = document.getElementById('sm-cat').value;
+            shopManual.unshift({ n: (emojis[cat] || '🛍️') + ' ' + n + (q ? ' ' + q : ''), m: 'You · ' + today, u: 'u-ok', ul: 'Normal', done: false });
+            closeShopModal();
+            renderShop();
+            showToast('✓ Added "' + n + '" to shopping list!');
+        }
+        document.getElementById('shop-modal').addEventListener('click', function (e) {
+            if (e.target === this) closeShopModal();
+        });
+
+        // ════════════════════════════════
+        // NOTIFICATIONS
+        // ════════════════════════════════
+        let dismissedNotifs = new Set();
+        function renderNotifs() {
+            const visible = NOTIFS.filter((_, i) => !dismissedNotifs.has(i));
+            document.getElementById('notif-dot').style.display = visible.length > 0 ? 'block' : 'none';
+            document.getElementById('notif-list').innerHTML = NOTIFS.map((n, i) => `
+    <div class="notif-item" id="notif-${i}" style="${dismissedNotifs.has(i) ? 'opacity:.3;pointer-events:none' : ''}">
+      <div class="notif-dot" style="background:${n.dot}"></div>
+      <div class="notif-content">
+        <div class="notif-title">${n.t}</div>
+        <div class="notif-body">${n.b}</div>
+        <div class="notif-time">${n.time}</div>
+        <div class="notif-actions">
+          <button class="btn btn-primary btn-sm" onclick="goPage('${n.act}')">${n.albl}</button>
+          <button class="btn btn-outline btn-sm" onclick="dismissNotif(${i})">Dismiss</button>
+        </div>
+      </div>
+    </div>`).join('');
+        }
+        function dismissNotif(i) {
+            dismissedNotifs.add(i);
+            renderNotifs();
+            showToast('Notification dismissed');
+        }
+
+        // ════════════════════════════════
+        // ENERGY MODE
+        // ════════════════════════════════
+        function pickEnergy(idx) {
+            for (let i = 0; i < 5; i++) {
+                const b = document.getElementById('em-' + i);
+                if (b) { b.classList.remove('active'); b.querySelector('.em-check').textContent = ''; }
+            }
+            const btn = document.getElementById('em-' + idx);
+            btn.classList.add('active');
+            btn.querySelector('.em-check').textContent = '✓';
+            const name = btn.querySelector('.em-name').textContent;
+            const desc = btn.querySelector('.em-desc').textContent;
+            const mc = document.getElementById('em-confirm');
+            mc.style.display = 'flex';
+            mc.textContent = '✓ Mode set: ' + name + ' — ' + desc;
+            showToast('✓ ' + name + ' activated!');
+        }
+
+        // ════════════════════════════════
+        // ADD FOOD
+        // ════════════════════════════════
+        function switchScan(mode, el) {
+            document.querySelectorAll('[id^="scan-t-"]').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            ['cam', 'bar', 'man'].forEach(m => {
+                const el2 = document.getElementById('scan-' + m);
+                if (el2) el2.style.display = m === mode ? 'block' : 'none';
+            });
+        }
+
+        const SCAN_FOODS = [
+            { n: 'Tomatoes (3 pcs)', e: '🍅', cat: 'Vegetables', conf: 94 },
+            { n: 'Spinach 100g', e: '🥬', cat: 'Vegetables', conf: 89 },
+            { n: 'Carrot (2 pcs)', e: '🥕', cat: 'Vegetables', conf: 92 },
+            { n: 'Capsicum (2 pcs)', e: '🫑', cat: 'Vegetables', conf: 87 },
+            { n: 'Broccoli 1 head', e: '🥦', cat: 'Vegetables', conf: 91 },
+            { n: 'Cucumber', e: '🥒', cat: 'Vegetables', conf: 88 },
+            { n: 'Paneer 200g', e: '🧆', cat: 'Dairy', conf: 95 },
+            { n: 'Full Cream Milk 500ml', e: '🥛', cat: 'Dairy', conf: 93 },
+        ];
+        const BARCODES = [
+            { n: 'Amul Full Cream Milk 500ml', e: '🥛', cat: 'Dairy', brand: 'Amul', cal: '65 kcal/100ml' },
+            { n: 'Mother Dairy Curd 400g', e: '🍶', cat: 'Dairy', brand: 'Mother Dairy', cal: '60 kcal/100g' },
+            { n: 'Britannia Cheese Slices', e: '🧀', cat: 'Dairy', brand: 'Britannia', cal: '340 kcal/100g' },
+            { n: 'Tropicana Mixed Fruit Juice', e: '🧃', cat: 'Beverages', brand: 'Tropicana', cal: '48 kcal/100ml' },
+        ];
+        let lastScan = null, lastBarcode = null;
+
+        function doScan() {
+            lastScan = SCAN_FOODS[Math.floor(Math.random() * SCAN_FOODS.length)];
+            document.getElementById('scan-result-text').innerHTML =
+                `<strong>${lastScan.e} ${lastScan.n}</strong> detected<br>
+     Category: <span style="color:var(--cyan)">${lastScan.cat}</span> · 
+     AI Confidence: <span style="color:var(--green)">${lastScan.conf}%</span>`;
+            document.getElementById('scan-result').style.display = 'block';
+        }
+        function acceptScan() {
+            if (!lastScan) return;
+            const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+            FOODS.unshift({ e: lastScan.e, n: lastScan.n, m: 'Main Shelf · Just now · 4°C', s: 'fresh', p: 100, cat: lastScan.cat });
+            recentAdded.unshift({ e: lastScan.e, n: lastScan.n, m: 'Added just now · Main Shelf' });
+            document.getElementById('scan-result').style.display = 'none';
+            renderRecent();
+            showToast('✓ ' + lastScan.e + ' ' + lastScan.n + ' added to fridge!');
+            lastScan = null;
+        }
+        function doBarcode() {
+            lastBarcode = BARCODES[Math.floor(Math.random() * BARCODES.length)];
+            document.getElementById('bar-result-text').innerHTML =
+                `<strong>${lastBarcode.e} ${lastBarcode.n}</strong><br>
+     Brand: <span style="color:var(--cyan)">${lastBarcode.brand}</span> · 
+     Category: <span style="color:var(--cyan)">${lastBarcode.cat}</span><br>
+     Nutrition: <span style="color:var(--green)">${lastBarcode.cal}</span>`;
+            document.getElementById('bar-result').style.display = 'block';
+        }
+        function acceptBarcode() {
+            if (!lastBarcode) return;
+            FOODS.unshift({ e: lastBarcode.e, n: lastBarcode.n, m: 'Main Shelf · Just now · 4°C', s: 'fresh', p: 100, cat: lastBarcode.cat });
+            recentAdded.unshift({ e: lastBarcode.e, n: lastBarcode.n, m: 'Added just now · Main Shelf' });
+            document.getElementById('bar-result').style.display = 'none';
+            renderRecent();
+            showToast('✓ ' + lastBarcode.e + ' ' + lastBarcode.n + ' added!');
+            lastBarcode = null;
+        }
+        function addFoodItem() {
+            const n = document.getElementById('af-name').value.trim();
+            if (!n) {
+                document.getElementById('af-name').style.borderColor = 'var(--red)';
+                document.getElementById('af-name').focus();
+                return;
+            }
+            document.getElementById('af-name').style.borderColor = '';
+            const cat = document.getElementById('af-cat').value;
+            const zone = document.getElementById('af-zone').value;
+            const qty = document.getElementById('af-qty').value || '';
+            const emojis = { Dairy: '🥛', Vegetables: '🥦', Fruits: '🍎', Grains: '🌾', Beverages: '🧃', Condiments: '🫙', Leftovers: '🍱' };
+            const e = emojis[cat] || '🛍️';
+            FOODS.unshift({ e, n: n + (qty ? ' ' + qty : ''), m: zone + ' · Just now · 4°C', s: 'fresh', p: 100, cat });
+            recentAdded.unshift({ e, n: n + (qty ? ' ' + qty : ''), m: 'Added just now · ' + zone });
+            document.getElementById('af-name').value = '';
+            document.getElementById('af-qty').value = '';
+            document.getElementById('af-exp').value = '';
+            const ok = document.getElementById('af-ok');
+            ok.style.display = 'flex';
+            setTimeout(() => ok.style.display = 'none', 3000);
+            renderRecent();
+            showToast('✓ ' + n + ' added to your fridge!');
+        }
+        function renderRecent() {
+            document.getElementById('recent-list').innerHTML = recentAdded.slice(0, 4).map(r =>
+                `<div class="food-item">
+      <div class="fi-emoji">${r.e}</div>
+      <div class="fi-info"><div class="fi-name">${r.n}</div><div class="fi-meta">${r.m}</div></div>
+      <span style="color:var(--green);font-size:18px">✓</span>
+    </div>`).join('');
+        }
+
+        // Add from inventory modal
+        function openAddModal() {
+            document.getElementById('add-modal').classList.add('open');
+            setTimeout(() => document.getElementById('am-name').focus(), 100);
+        }
+        function closeAddModal() {
+            document.getElementById('add-modal').classList.remove('open');
+            document.getElementById('am-name').value = '';
+            document.getElementById('am-qty').value = '';
+            document.getElementById('am-exp').value = '';
+        }
+        function addFromModal() {
+            const n = document.getElementById('am-name').value.trim();
+            if (!n) { document.getElementById('am-name').style.borderColor = 'var(--red)'; return; }
+            document.getElementById('am-name').style.borderColor = '';
+            const cat = document.getElementById('am-cat').value;
+            const zone = document.getElementById('am-zone').value;
+            const qty = document.getElementById('am-qty').value || '';
+            const emojis = { Dairy: '🥛', Vegetables: '🥦', Fruits: '🍎', Grains: '🌾', Beverages: '🧃', Condiments: '🫙' };
+            const e = emojis[cat] || '🛍️';
+            FOODS.unshift({ e, n: n + (qty ? ' ' + qty : ''), m: zone + ' · Just now · 4°C', s: 'fresh', p: 100, cat });
+            recentAdded.unshift({ e, n: n + (qty ? ' ' + qty : ''), m: 'Added just now · ' + zone });
+            closeAddModal();
+            renderInv(FOODS);
+            showToast('✓ ' + n + ' added to fridge!');
+        }
+        document.getElementById('add-modal').addEventListener('click', function (e) {
+            if (e.target === this) closeAddModal();
+        });
+
+        // ════════════════════════════════
+        // PROFILE
+        // ════════════════════════════════
+        function saveProfile() {
+            const name = document.getElementById('p-name').value.trim();
+            const email = document.getElementById('p-email').value.trim();
+            if (!name) { document.getElementById('p-name').style.borderColor = 'var(--red)'; return; }
+            document.getElementById('p-name').style.borderColor = '';
+            document.getElementById('profile-display-name').textContent = name;
+            document.getElementById('profile-display-email').textContent = email;
+            document.getElementById('profile-av').textContent = name.charAt(0).toUpperCase();
+            document.querySelector('.avatar-sm').textContent = name.charAt(0).toUpperCase();
+            const ok = document.getElementById('p-ok');
+            ok.style.display = 'flex';
+            setTimeout(() => ok.style.display = 'none', 3000);
+            showToast('✓ Profile updated for ' + name + '!');
+        }
+
+        // ════════════════════════════════
+        // TOAST
+        // ════════════════════════════════
+        let toastTimer;
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.display = 'block';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.style.display = 'none', 3000);
+        }
+
+        // ════════════════════════════════
+        // KEYBOARD
+        // ════════════════════════════════
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeVidModal();
+                closeAddModal();
+                closeShopModal();
+                closeMore();
+            }
+        });
+
+        // ════════════════════════════════
+        // INIT
+        // ════════════════════════════════
+        renderDash();
+        renderVids('all');
+        renderRec('all');
+        renderShop();
+        renderNotifs();
+        renderInv(FOODS);
+        renderFresh('all');
+        renderRecent();
+    </script>
+</body>
+
+</html>

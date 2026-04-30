@@ -5,11 +5,11 @@
  */
 
 const mongoose = require('mongoose');
-const dotenv   = require('dotenv');
+const dotenv = require('dotenv');
 dotenv.config({ path: '../.env' });
 
-const FoodItem    = require('../models/FoodItem');
-const Recipe      = require('../models/Recipe');
+const FoodItem = require('../models/FoodItem');
+const Recipe = require('../models/Recipe');
 const GroceryAlert = require('../models/GroceryAlert');
 const Refrigerator = require('../models/Refrigerator');
 
@@ -116,7 +116,7 @@ const recipes = [
     prepTime: 5, cookTime: 10, servings: 1,
     difficulty: 'easy', category: 'breakfast',
     nutritionPerServing: { calories: 320, protein: 22, carbs: 3, fat: 24 },
-    tags: ['quick', 'protein-rich', 'vegetarian'], rating: 4.5
+    tags: ['quick', 'protein-rich', 'vegetarian'], rating: 4.5, youtubeUrl: 'https://youtube.com/shorts/mvqHJK6NMxs?si=oB9islx8pT9oHRK_'
   },
   {
     name: 'Chicken Salad',
@@ -134,7 +134,7 @@ const recipes = [
     prepTime: 10, cookTime: 20, servings: 2,
     difficulty: 'easy', category: 'lunch',
     nutritionPerServing: { calories: 280, protein: 36, carbs: 8, fat: 10 },
-    tags: ['healthy', 'high-protein', 'gluten-free'], rating: 4.3
+    tags: ['healthy', 'high-protein', 'gluten-free'], rating: 4.3, youtubeUrl: 'https://youtube.com/shorts/bi3MzHfCTFQ?si=cF29UIsNTW7-H1AW'
   },
   {
     name: 'Strawberry Smoothie',
@@ -151,7 +151,7 @@ const recipes = [
     prepTime: 5, cookTime: 0, servings: 1,
     difficulty: 'easy', category: 'breakfast',
     nutritionPerServing: { calories: 180, protein: 12, carbs: 22, fat: 3 },
-    tags: ['smoothie', 'quick', 'vitamin-c'], rating: 4.8
+    tags: ['smoothie', 'quick', 'vitamin-c'], rating: 4.8, youtubeUrl: 'https://youtube.com/shorts/yH2EigcECpc?si=xPOCzQ-GnT3ZuY6g'
   },
   {
     name: 'Cheese Omelette Wrap',
@@ -170,7 +170,7 @@ const recipes = [
     prepTime: 5, cookTime: 12, servings: 2,
     difficulty: 'easy', category: 'breakfast',
     nutritionPerServing: { calories: 380, protein: 25, carbs: 4, fat: 30 },
-    rating: 4.2
+    rating: 4.2, youtubeUrl: 'https://youtube.com/shorts/9Pig4q0CCsA?si=z9l2sEgZopgzrG9h'
   },
   {
     name: 'Carrot Yogurt Dip',
@@ -186,7 +186,7 @@ const recipes = [
     prepTime: 5, cookTime: 0, servings: 2,
     difficulty: 'easy', category: 'snack',
     nutritionPerServing: { calories: 120, protein: 8, carbs: 14, fat: 2 },
-    rating: 4.0
+    rating: 4.0, youtubeUrl: 'https://youtube.com/shorts/YHUL2d_AwAc?si=LgS8DyxhtsXt3_V5'
   }
 ];
 
@@ -210,7 +210,7 @@ const groceryAlerts = [
 // ─── Seed Function ─────────────────────────────────────────────────────────────
 async function seed() {
   try {
-    await mongoose.connect(MONGO_URI);
+    // await mongoose.connect(MONGO_URI);
     console.log('✅ Connected to MongoDB');
 
     // Clear existing data
@@ -248,4 +248,4 @@ async function seed() {
   }
 }
 
-seed();
+module.exports = seed;
