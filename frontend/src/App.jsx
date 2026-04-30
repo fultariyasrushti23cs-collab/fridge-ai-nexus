@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import FoodItems from './pages/FoodItems';
 import Recipes from './pages/Recipes';
 import GroceryAlerts from './pages/GroceryAlerts';
+import Compatibility from './pages/Compatibility';
 import Settings from './pages/Settings';
 import './index.css';
 
@@ -20,7 +21,7 @@ export default function App() {
       <BrowserRouter>
         {/* Ambient glow orbs */}
         <div className="glow-orb w-96 h-96 bg-blue-500" style={{ top: '-10%', left: '-5%' }} />
-        <div className="glow-orb w-80 h-80 bg-cyan-500"  style={{ bottom: '10%', right: '5%' }} />
+        <div className="glow-orb w-80 h-80 bg-cyan-500" style={{ bottom: '10%', right: '5%' }} />
 
         <Toaster
           position="top-right"
@@ -38,11 +39,12 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard"      element={<Dashboard />} />
-            <Route path="food-items"     element={<FoodItems />} />
-            <Route path="recipes"        element={<Recipes />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="food-items" element={<FoodItems />} />
+            <Route path="recipes" element={<Recipes />} />
             <Route path="grocery-alerts" element={<GroceryAlerts />} />
-            <Route path="settings"       element={<Settings />} />
+            <Route path="compatibility" element={<Compatibility />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
       </BrowserRouter>

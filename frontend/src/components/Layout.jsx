@@ -7,11 +7,12 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
 const NAV = [
-  { to: '/dashboard',      icon: '⊞', label: 'Dashboard' },
-  { to: '/food-items',     icon: '🥗', label: 'Food Items' },
-  { to: '/recipes',        icon: '📖', label: 'Recipes' },
+  { to: '/dashboard', icon: '⊞', label: 'Dashboard' },
+  { to: '/food-items', icon: '🥗', label: 'Food Items' },
+  { to: '/recipes', icon: '📖', label: 'Recipes' },
   { to: '/grocery-alerts', icon: '🛒', label: 'Grocery' },
-  { to: '/settings',       icon: '⚙️', label: 'Settings' },
+  { to: '/compatibility', icon: '🏠', label: 'Compatibility' },
+  { to: '/settings', icon: '⚙️', label: 'Settings' },
 ];
 
 export default function Layout() {
