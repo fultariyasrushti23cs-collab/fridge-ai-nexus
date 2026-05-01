@@ -1,0 +1,1590 @@
+"""
+FridgeAI Nexus — Premium Presentation PDF
+All slides with hand-crafted vector diagrams via ReportLab canvas.
+"""
+from reportlab.pdfgen import canvas as rl_canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+import math
+
+OUT = "/home/claude/FridgeAI_Nexus_Premium.pdf"
+W, H = A4  # 595.28 x 841.89 pts
+
+# ── Palette ────────────────────────────────────────────────────────────────────
+C_BG     = colors.HexColor("#0a1f2b")   # deep navy-teal
+C_PANEL  = colors.HexColor("#122d3a")   # slightly lighter panel
+C_CARD   = colors.HexColor("#1a3d4f")   # card bg
+C_TEAL   = colors.HexColor("#00b4d8")   # primary accent
+C_GREEN  = colors.HexColor("#06d6a0")   # success green
+C_RED    = colors.HexColor("#e63946")   # red badge
+C_YELLOW = colors.HexColor("#ffd166")   # highlight yellow
+C_PURPLE = colors.HexColor("#7b2d8b")   # purple accent
+C_WHITE  = colors.white
+C_LGRAY  = colors.HexColor("#8ecae6")   # light text
+C_DGRAY  = colors.HexColor("#4a7c8e")   # dim text
+
+def c_hex(h):
+    return colors.HexColor(h)
+
+# ── Low-level helpers ──────────────────────────────────────────────────────────
+
+def bg(c):
+    c.setFillColor(C_BG)
+    c.rect(0, 0, W, H, fill=1, stroke=0)
+
+def slide_header(c, num, title, subtitle=""):
+    # Top gradient bar
+    c.setFillColor(C_PANEL)
+    c.rect(0, H-68, W, 68, fill=1, stroke=0)
+    # Left accent stripe
+    c.setFillColor(C_TEAL)
+    c.rect(0, H-68, 5, 68, fill=1, stroke=0)
+    # Red number badge
+    c.setFillColor(C_RED)
+    c.roundRect(W-56, H-56, 42, 38, 6, fill=1, stroke=0)
+    c.setFillColor(C_WHITE)
+    c.setFont("Helvetica-Bold", 18)
+    c.drawCentredString(W-35, H-43, str(num))
+    # Title
+    c.setFillColor(C_WHITE)
+    c.setFont("Helvetica-Bold", 21)
+    c.drawString(18, H-46, f"❖  {title}")
+    if subtitle:
+        c.setFillColor(C_LGRAY)
+        c.setFont("Helvetica", 10)
+        c.drawString(18, H-62, subtitle)
+    # Bottom rule
+    c.setStrokeColor(C_TEAL)
+    c.setLineWidth(0.8)
+    c.line(0, H-70, W, H-70)
+
+def footer(c, num):
+    c.setFillColor(C_PANEL)
+    c.rect(0, 0, W, 22, fill=1, stroke=0)
+    c.setFillColor(C_DGRAY)
+    c.setFont("Helvetica", 8)
+    c.drawString(10, 7, "FridgeAI Nexus  —  AI-Powered Smart Kitchen Platform")
+    c.drawRightString(W-10, 7, f"Slide {num} / 18")
+
+def bullet(c, x, y, text, color=C_TEAL, size=10):
+    c.setFillColor(color)
+    c.circle(x, y+3, 4, fill=1, stroke=0)
+    c.setFillColor(C_WHITE)
+    c.setFont("Helvetica", size)
+    c.drawString(x+10, y, text)
+    return y
+
+def wrap_text(c, text, x, y, max_w, font="Helvetica", size=9, color=C_LGRAY, line_h=13):
+    c.setFillColor(color)
+    c.setFont(font, size)
+    words = text.split()
+    line = ""
+    for w in words:
+        test = line + w + " "
+        if c.stringWidth(test, font, size) > max_w:
+            c.drawString(x, y, line.strip())
+            y -= line_h
+            line = w + " "
+        else:
+            line = test
+    if line:
+        c.drawString(x, y, line.strip())
+        y -= line_h
+    return y
+
+def box(c, x, y, w, h, fill=C_CARD, stroke=C_TEAL, sw=1, r=6):
+    c.setFillColor(fill)
+    c.setStrokeColor(stroke)
+    c.setLineWidth(sw)
+    c.roundRect(x, y, w, h, r, fill=1, stroke=1)
+
+def label_box(c, cx, cy, bw, bh, text, fill=C_CARD, text_color=C_WHITE,
+              font="Helvetica-Bold", fsize=9, stroke=C_TEAL, sw=1, r=5):
+    box(c, cx-bw/2, cy-bh/2, bw, bh, fill=fill, stroke=stroke, sw=sw, r=r)
+    c.setFillColor(text_color)
+    c.setFont(font, fsize)
+    lines = text.split("\n")
+    lh = fsize + 2
+    start_y = cy + (len(lines)-1)*lh/2
+    for l in lines:
+        c.drawCentredString(cx, start_y, l)
+        start_y -= lh
+
+def arrow_h(c, x1, y, x2, color=C_TEAL, lw=1.5):
+    c.setStrokeColor(color)
+    c.setFillColor(color)
+    c.setLineWidth(lw)
+    c.line(x1, y, x2-6, y)
+    # arrowhead
+    p = c.beginPath()
+    p.moveTo(x2, y)
+    p.lineTo(x2-7, y+4)
+    p.lineTo(x2-7, y-4)
+    p.close()
+    c.drawPath(p, fill=1, stroke=0)
+
+def arrow_v(c, x, y1, y2, color=C_TEAL, lw=1.5):
+    c.setStrokeColor(color)
+    c.setFillColor(color)
+    c.setLineWidth(lw)
+    c.line(x, y1, x, y2+6)
+    p = c.beginPath()
+    p.moveTo(x, y2)
+    p.lineTo(x-4, y2+7)
+    p.lineTo(x+4, y2+7)
+    p.close()
+    c.drawPath(p, fill=1, stroke=0)
+
+def section_tag(c, x, y, text, color=C_TEAL):
+    tw = c.stringWidth(text, "Helvetica-Bold", 8) + 16
+    c.setFillColor(color)
+    c.roundRect(x, y, tw, 16, 4, fill=1, stroke=0)
+    c.setFillColor(C_BG)
+    c.setFont("Helvetica-Bold", 8)
+    c.drawString(x+8, y+5, text)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SLIDES
+# ══════════════════════════════════════════════════════════════════════════════
+
+def slide_cover(c):
+    bg(c)
+    # Big teal glow circle behind title
+    c.setFillColor(c_hex("#002233"))
+    c.circle(W/2, H/2+50, 230, fill=1, stroke=0)
+
+    c.setFillColor(C_TEAL)
+    c.setFont("Helvetica-Bold", 46)
+    c.drawCentredString(W/2, H/2+90, "FridgeAI Nexus")
+
+    c.setFillColor(C_WHITE)
+    c.setFont("Helvetica-Bold", 18)
+    c.drawCentredString(W/2, H/2+54, "AI-Powered Smart Kitchen Platform")
+
+    # Tag pills
+    tags = ["Smart Fridge Inventory", "AI Meal Planner", "Nutrition Tracker"]
+    tw_total = sum(c.stringWidth(t,"Helvetica",9)+24 for t in tags) + 16
+    tx = W/2 - tw_total/2
+    ty = H/2+28
+    for t in tags:
+        tw = c.stringWidth(t,"Helvetica",9)+24
+        c.setFillColor(c_hex("#003344"))
+        c.roundRect(tx, ty, tw, 18, 5, fill=1, stroke=0)
+        c.setStrokeColor(C_TEAL)
+        c.setLineWidth(0.8)
+        c.roundRect(tx, ty, tw, 18, 5, fill=0, stroke=1)
+        c.setFillColor(C_TEAL)
+        c.setFont("Helvetica", 9)
+        c.drawCentredString(tx+tw/2, ty+5, t)
+        tx += tw + 8
+
+    # Divider
+    c.setStrokeColor(C_TEAL)
+    c.setLineWidth(1.5)
+    c.line(80, H/2+14, W-80, H/2+14)
+
+    # Three icon cards
+    cards = [("🍎","Inventory\nTracking"), ("🤖","AI Meal\nPlan"), ("📊","Nutrition\nAnalysis")]
+    cw, ch = 140, 60
+    gx = W/2 - 1.5*cw - 10
+    for i,(icon,txt) in enumerate(cards):
+        cx = gx + i*(cw+10)
+        c.setFillColor(C_CARD)
+        c.roundRect(cx, H/2-72, cw, ch, 8, fill=1, stroke=0)
+        c.setStrokeColor(C_TEAL)
+        c.setLineWidth(0.6)
+        c.roundRect(cx, H/2-72, cw, ch, 8, fill=0, stroke=1)
+        c.setFillColor(C_WHITE)
+        c.setFont("Helvetica-Bold", 20)
+        c.drawCentredString(cx+cw/2, H/2-30, icon)
+        c.setFont("Helvetica", 8)
+        c.setFillColor(C_LGRAY)
+        for j,ln in enumerate(txt.split("\n")):
+            c.drawCentredString(cx+cw/2, H/2-46+j*(-11), ln)
+
+    # Bottom
+    c.setFillColor(C_LGRAY)
+    c.setFont("Helvetica", 9)
+    c.drawCentredString(W/2, 90, "Prepared by: BSc Data Science  |  6th Semester Project")
+    c.setFillColor(C_TEAL)
+    c.roundRect(W/2-70, 60, 140, 22, 6, fill=1, stroke=0)
+    c.setFillColor(C_BG)
+    c.setFont("Helvetica-Bold", 9)
+    c.drawCentredString(W/2, 68, "Powered by Generative AI")
+    footer(c, 1)
+
+
+def slide_intro(c):
+    bg(c); slide_header(c, 2, "Introduction")
+    y = H - 100
+
+    items = [
+        (C_TEAL,   "What is FridgeAI Nexus?",
+         "A web-based AI platform that helps users manage fridge inventory, plan meals, track nutrition, and reduce food waste — all through an intelligent, no-code interface."),
+        (C_GREEN,  "Target Users",
+         "Home users wanting healthier eating habits. Fitness enthusiasts tracking macros. Busy professionals who need quick meal suggestions based on what they already own."),
+        (C_YELLOW, "The Core Problem",
+         "Most people don't know what's in their fridge, waste food, and struggle to plan nutritious meals. FridgeAI Nexus solves this with AI-driven insights and automated planning."),
+        (C_RED,    "What Users Get",
+         "Smart fridge dashboard, AI meal planner, grocery list generator, nutritional analysis, recipe recommendations, and plain-English AI explanations — all in one platform."),
+    ]
+
+    for (color, heading, body) in items:
+        if y < 70: break
+        # Colored left bar card
+        c.setFillColor(C_CARD)
+        c.roundRect(22, y-52, W-44, 58, 6, fill=1, stroke=0)
+        c.setFillColor(color)
+        c.roundRect(22, y-52, 5, 58, 6, fill=1, stroke=0)
+        c.rect(22, y-52, 5, 40, fill=1, stroke=0)  # square bottom-left
+        c.setFillColor(color)
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(36, y-12, heading)
+        c.setFillColor(C_LGRAY)
+        c.setFont("Helvetica", 9)
+        # wrap body
+        words = body.split()
+        line = ""
+        bx, by, mw = 36, y-26, W-80
+        for w in words:
+            test = line + w + " "
+            if c.stringWidth(test, "Helvetica", 9) > mw:
+                c.drawString(bx, by, line.strip()); by -= 12; line = w + " "
+            else:
+                line = test
+        if line: c.drawString(bx, by, line.strip())
+        y -= 72
+    footer(c, 2)
+
+
+def slide_arch(c):
+    bg(c); slide_header(c, 3, "System Architecture", "5-layer component overview")
+
+    layers = [
+        (C_TEAL,   "1. Frontend",      "React.js + Next.js",   "User Dashboard, Fridge UI,\nMeal Planner, Nutrition View"),
+        (C_GREEN,  "2. Backend",       "Node.js / NestJS",     "REST APIs, Auth, Session\nManagement, Data Routing"),
+        (C_YELLOW, "3. AI Engine",     "Python FastAPI + LLM", "Inventory Analysis, Meal\nSuggestions, Nutrition AI"),
+        (C_RED,    "4. Explainable AI","GenAI Reports",        "Plain-English Explanations\nof AI Decisions & Insights"),
+        (C_PURPLE, "5. Database",      "MongoDB",              "Users, Fridge, Meals,\nGrocery, Sessions"),
+    ]
+
+    bw, bh = W - 80, 82
+    y0 = H - 96
+    gap = 10
+
+    for i, (color, num, tech, desc) in enumerate(layers):
+        by = y0 - i*(bh+gap)
+        # Main card
+        c.setFillColor(C_CARD)
+        c.roundRect(36, by-bh, bw, bh, 7, fill=1, stroke=0)
+        # Left colour stripe
+        c.setFillColor(color)
+        c.roundRect(36, by-bh, 8, bh, 7, fill=1, stroke=0)
+        c.rect(40, by-bh, 4, bh, fill=1, stroke=0)
+        # Number + tech label
+        c.setFillColor(color)
+        c.setFont("Helvetica-Bold", 13)
+        c.drawString(54, by-22, num)
+        c.setFillColor(C_WHITE)
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(54, by-36, tech)
+        # Desc
+        c.setFillColor(C_LGRAY)
+        c.setFont("Helvetica", 8.5)
+        for j, ln in enumerate(desc.split("\n")):
+            c.drawString(54, by-50-j*12, ln)
+        # Right icon area
+        section_tag(c, W-120, by-22, num.split(".")[0].strip(), color)
+        # Arrow between layers
+        if i < len(layers)-1:
+            ax = W/2
+            ay = by - bh
+            c.setFillColor(color)
+            c.setFont("Helvetica", 14)
+            c.drawCentredString(ax, ay-4, "▾")
+
+    footer(c, 3)
+
+
+def slide_system_diagram(c):
+    bg(c); slide_header(c, 4, "System Architecture Diagram", "Data flow across all layers")
+
+    # ─ Draw a horizontal pipeline diagram ─
+    layers = [
+        ("USER",        C_TEAL,   ["Web Browser","Mobile App"]),
+        ("FRONTEND",    C_GREEN,  ["React.js","Next.js"]),
+        ("BACKEND",     C_YELLOW, ["Node.js","FastAPI"]),
+        ("AI ENGINE",   C_RED,    ["LLM Agent","Nutrition\nAnalysis"]),
+        ("DATABASE",    C_PURPLE, ["MongoDB","AWS S3"]),
+    ]
+
+    n = len(layers)
+    margin = 32
+    bw = (W - 2*margin - (n-1)*20) / n
+    bh = 200
+    y0 = H - 100  # top of boxes
+    node_h = 38
+
+    for i, (lname, color, nodes) in enumerate(layers):
+        bx = margin + i*(bw+20)
+        by = y0 - bh
+
+        # Outer column box
+        c.setFillColor(C_PANEL)
+        c.roundRect(bx, by, bw, bh, 8, fill=1, stroke=0)
+        c.setStrokeColor(color)
+        c.setLineWidth(1.2)
+        c.roundRect(bx, by, bw, bh, 8, fill=0, stroke=1)
+
+        # Layer header bar
+        c.setFillColor(color)
+        c.roundRect(bx, by+bh-24, bw, 24, 6, fill=1, stroke=0)
+        c.rect(bx, by+bh-16, bw, 16, fill=1, stroke=0)  # square bottom corners
+        c.setFillColor(C_BG)
+        c.setFont("Helvetica-Bold", 8)
+        c.drawCentredString(bx+bw/2, by+bh-15, lname)
+
+        # Node boxes inside
+        ny = by + bh - 42
+        for node in nodes:
+            nh = node_h
+            c.setFillColor(C_CARD)
+            c.roundRect(bx+6, ny-nh, bw-12, nh, 5, fill=1, stroke=0)
+            c.setStrokeColor(color)
+            c.setLineWidth(0.5)
+            c.roundRect(bx+6, ny-nh, bw-12, nh, 5, fill=0, stroke=1)
+            c.setFillColor(C_WHITE)
+            c.setFont("Helvetica-Bold", 8)
+            lines = node.split("\n")
+            for j, ln in enumerate(lines):
+                c.drawCentredString(bx+bw/2, ny-16-j*11, ln)
+            ny -= nh + 8
+
+        # Arrow to next layer
+        if i < n-1:
+            ax1 = bx + bw
+            ax2 = bx + bw + 20
+            ay = y0 - bh/2
+            c.setStrokeColor(color)
+            c.setLineWidth(2)
+            c.line(ax1+1, ay, ax2-6, ay)
+            c.setFillColor(color)
+            p = c.beginPath()
+            p.moveTo(ax2, ay)
+            p.lineTo(ax2-7, ay+4)
+            p.lineTo(ax2-7, ay-4)
+            p.close()
+            c.drawPath(p, fill=1, stroke=0)
+
+    # Legend below
+    legend_y = y0 - bh - 28
+    c.setFillColor(C_LGRAY)
+    c.setFont("Helvetica", 8)
+    c.drawCentredString(W/2, legend_y,
+        "Data flows left to right: User interaction → Frontend → Backend → AI Engine → Database Storage")
+
+    # Bottom data flow labels
+    labels = ["HTTP/HTTPS", "REST API", "gRPC / HTTP", "MongoDB Wire"]
+    for i, lbl in enumerate(labels):
+        lx = margin + (i+0.5)*(bw+20) + bw/2 + 4
+        c.setFillColor(C_DGRAY)
+        c.setFont("Helvetica", 7)
+        c.drawCentredString(lx, legend_y - 16, lbl)
+
+    footer(c, 4)
+
+
+def slide_workflow(c):
+    bg(c); slide_header(c, 5, "System Workflow Diagram", "End-to-end user journey")
+
+    steps = [
+        (C_TEAL,   "1",  "User\nRegisters"),
+        (C_GREEN,  "2",  "Dashboard\nOpens"),
+        (C_YELLOW, "3",  "Add Fridge\nItems"),
+        (C_RED,    "4",  "AI Analyses\nInventory"),
+        (C_PURPLE, "5",  "Meal Plans\nGenerated"),
+        (C_TEAL,   "6",  "User Selects\nMeal"),
+        (C_GREEN,  "7",  "Grocery\nList Created"),
+        (C_YELLOW, "8",  "Nutrition\nTracked"),
+        (C_RED,    "9",  "AI Report\nGenerated"),
+        (C_PURPLE, "10", "Download /\nExport"),
+    ]
+
+    row1 = steps[:5]
+    row2 = steps[5:][::-1]  # reversed to show snake path
+
+    def draw_row(row, y_center, reverse=False):
+        n = len(row)
+        bw, bh = 88, 58
+        gap = 18
+        total = n*bw + (n-1)*gap
+        x0 = (W - total)/2
+        for i, (color, num, label) in enumerate(row):
+            bx = x0 + i*(bw+gap)
+            by = y_center - bh/2
+            # Shadow
+            c.setFillColor(c_hex("#050f18"))
+            c.roundRect(bx+3, by-3, bw, bh, 8, fill=1, stroke=0)
+            # Box
+            c.setFillColor(C_CARD)
+            c.roundRect(bx, by, bw, bh, 8, fill=1, stroke=0)
+            c.setStrokeColor(color)
+            c.setLineWidth(1.5)
+            c.roundRect(bx, by, bw, bh, 8, fill=0, stroke=1)
+            # Number badge
+            c.setFillColor(color)
+            c.circle(bx+16, by+bh-12, 10, fill=1, stroke=0)
+            c.setFillColor(C_BG)
+            c.setFont("Helvetica-Bold", 9)
+            c.drawCentredString(bx+16, by+bh-15, num)
+            # Label
+            c.setFillColor(C_WHITE)
+            c.setFont("Helvetica-Bold", 8)
+            for j, ln in enumerate(label.split("\n")):
+                c.drawCentredString(bx+bw/2, by+bh-28-j*12, ln)
+            # Arrow
+            if i < n-1:
+                ax1 = bx+bw+1
+                ax2 = bx+bw+gap-1
+                ay = y_center
+                c.setStrokeColor(color)
+                c.setLineWidth(2)
+                c.line(ax1, ay, ax2-6, ay)
+                c.setFillColor(color)
+                p = c.beginPath()
+                p.moveTo(ax2, ay)
+                p.lineTo(ax2-7, ay+4)
+                p.lineTo(ax2-7, ay-4)
+                p.close()
+                c.drawPath(p, fill=1, stroke=0)
+
+    y1 = H - 148
+    y2 = H - 278
+    draw_row(row1, y1)
+    # Connector arrow going down on the right
+    rbw = 88
+    rgap = 18
+    n = 5
+    total = n*rbw + (n-1)*rgap
+    x0 = (W - total)/2
+    rx_right = x0 + total
+    # Down arrow on right side
+    c.setStrokeColor(C_PURPLE)
+    c.setLineWidth(2.5)
+    c.line(rx_right - rbw, y1-29, rx_right - rbw, y2+29)
+    # Arrowhead pointing down to row2
+    c.setFillColor(C_PURPLE)
+    p = c.beginPath()
+    p.moveTo(rx_right - rbw, y2+28)
+    p.lineTo(rx_right - rbw - 5, y2+38)
+    p.lineTo(rx_right - rbw + 5, y2+38)
+    p.close()
+    c.drawPath(p, fill=1, stroke=0)
+
+    draw_row(row2, y2)
+
+    # Note at bottom
+    c.setFillColor(C_DGRAY)
+    c.setFont("Helvetica", 8)
+    c.drawCentredString(W/2, y2-48,
+        "Snake-path workflow: Row 1 (Steps 1-5) → Down → Row 2 (Steps 6-10, right to left)")
+    footer(c, 5)
+
+
+def slide_auth(c):
+    bg(c); slide_header(c, 6, "User Authentication", "Secure login, registration & profile management")
+
+    # Three columns: Register | Sign In | Profile
+    cols = [
+        (C_TEAL,   "Register", [
+            "1. Visit home page",
+            "2. Click Get Started",
+            "3. Enter name & email",
+            "4. Set password",
+            "5. OTP verification",
+            "6. Account created!",
+        ]),
+        (C_GREEN,  "Sign In", [
+            "1. Enter email",
+            "2. Enter password",
+            "3. Click Sign In",
+            "4. JWT token issued",
+            "5. Redirect to Dashboard",
+            "",
+        ]),
+        (C_YELLOW, "Profile & Security", [
+            "Update name & email",
+            "Change password",
+            "Set dietary goals",
+            "Two-Factor Auth (TOTP)",
+            "View activity history",
+            "Delete account",
+        ]),
+    ]
+
+    cw = (W - 70) / 3
+    ch = 300
+    y0 = H - 100
+
+    for i, (color, title, items) in enumerate(cols):
+        cx = 24 + i*(cw+11)
+        # Card
+        c.setFillColor(C_CARD)
+        c.roundRect(cx, y0-ch, cw, ch, 8, fill=1, stroke=0)
+        c.setStrokeColor(color)
+        c.setLineWidth(1.2)
+        c.roundRect(cx, y0-ch, cw, ch, 8, fill=0, stroke=1)
+        # Header
+        c.setFillColor(color)
+        c.roundRect(cx, y0-30, cw, 30, 7, fill=1, stroke=0)
+        c.rect(cx, y0-22, cw, 22, fill=1, stroke=0)
+        c.setFillColor(C_BG)
+        c.setFont("Helvetica-Bold", 11)
+        c.drawCentredString(cx+cw/2, y0-20, title)
+        # Items
+        iy = y0 - 52
+        for item in items:
+            if not item: continue
+            c.setFillColor(color)
+            c.circle(cx+14, iy+4, 3.5, fill=1, stroke=0)
+            c.setFillColor(C_WHITE)
+            c.setFont("Helvetica", 9)
+            c.drawString(cx+22, iy, item)
+            iy -= 18
+
+    # Security badge at bottom
+    bx, by, bw2, bh2 = 24, y0-ch-50, W-48, 38
+    c.setFillColor(c_hex("#001a26"))
+    c.roundRect(bx, by, bw2, bh2, 6, fill=1, stroke=0)
+    c.setStrokeColor(C_TEAL)
+    c.setLineWidth(0.8)
+    c.roundRect(bx, by, bw2, bh2, 6, fill=0, stroke=1)
+    c.setFillColor(C_TEAL)
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(bx+12, by+24, "🔒  Security Stack:")
+    c.setFillColor(C_LGRAY)
+    c.setFont("Helvetica", 9)
+    c.drawString(bx+12, by+10, "bcrypt password hashing  |  JWT session tokens  |  OTP email verification  |  TOTP two-factor auth")
+    footer(c, 6)
+
+
+def slide_dashboard(c):
+    bg(c); slide_header(c, 7, "Dashboard & Navigation", "Centralised control panel for all features")
+
+    # Mockup dashboard wireframe
+    mx, my = 30, H - 100
+    mw, mh = W - 60, 330
+
+    # Outer frame
+    c.setFillColor(C_PANEL)
+    c.roundRect(mx, my-mh, mw, mh, 10, fill=1, stroke=0)
+    c.setStrokeColor(C_TEAL)
+    c.setLineWidth(1)
+    c.roundRect(mx, my-mh, mw, mh, 10, fill=0, stroke=1)
+
+    # Top nav bar
+    c.setFillColor(c_hex("#060f18"))
+    c.roundRect(mx, my-32, mw, 32, 8, fill=1, stroke=0)
+    c.rect(mx, my-24, mw, 24, fill=1, stroke=0)
+    c.setFillColor(C_TEAL)
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(mx+12, my-20, "🍽  FridgeAI Nexus")
+    navs = ["Dashboard", "Fridge", "Meals", "Nutrition", "Grocery", "Profile"]
+    nx = mx + 140
+    for nav in navs:
+        c.setFillColor(C_DGRAY)
+        c.setFont("Helvetica", 7.5)
+        c.drawString(nx, my-20, nav)
+        nx += c.stringWidth(nav,"Helvetica",7.5) + 18
+
+    # Stat cards row
+    stats = [
+        (C_TEAL,   "28", "Fridge Items"),
+        (C_GREEN,  "3",  "Meals Today"),
+        (C_YELLOW, "1850","Calories Left"),
+        (C_RED,    "5",  "Expiring Soon"),
+    ]
+    sw = (mw - 20) / 4 - 6
+    for i, (col, val, lbl) in enumerate(stats):
+        sx = mx + 10 + i*(sw+6)
+        sy = my - 80
+        c.setFillColor(C_CARD)
+        c.roundRect(sx, sy, sw, 38, 6, fill=1, stroke=0)
+        c.setFillColor(col)
+        c.setFont("Helvetica-Bold", 14)
+        c.drawCentredString(sx+sw/2, sy+24, val)
+        c.setFillColor(C_LGRAY)
+        c.setFont("Helvetica", 7)
+        c.drawCentredString(sx+sw/2, sy+10, lbl)
+
+    # Left panel: Fridge items
+    lw = mw*0.38
+    c.setFillColor(C_CARD)
+    c.roundRect(mx+10, my-mh+10, lw, mh-100, 6, fill=1, stroke=0)
+    c.setFillColor(C_TEAL)
+    c.setFont("Helvetica-Bold", 8)
+    c.drawString(mx+18, my-106, "🧊 FRIDGE INVENTORY")
+    items = [("Milk","2L","2d"), ("Eggs","6","5d"), ("Spinach","100g","1d"),
+             ("Chicken","500g","3d"), ("Cheese","200g","4d")]
+    for j, (nm, qty, exp) in enumerate(items):
+        iy = my-122-j*22
+        if iy < my-mh+18: break
+        c.setFillColor(C_WHITE)
+        c.setFont("Helvetica", 8)
+        c.drawString(mx+18, iy, nm)
+        c.setFillColor(C_DGRAY)
+        c.drawString(mx+18+lw/2-20, iy, qty)
+        col = C_RED if exp=="1d" else C_YELLOW if exp=="2d" else C_GREEN
+        c.setFillColor(col)
+        c.setFont("Helvetica-Bold", 7)
+        c.drawString(mx+18+lw-30, iy, f"exp:{exp}")
+
+    # Right panel: AI suggestion
+    rx = mx+10+lw+8
+    rw = mw - lw - 28
+    c.setFillColor(C_CARD)
+    c.roundRect(rx, my-mh+10, rw, mh-100, 6, fill=1, stroke=0)
+    c.setFillColor(C_GREEN)
+    c.setFont("Helvetica-Bold", 8)
+    c.drawString(rx+8, my-106, "🤖 AI MEAL SUGGESTION")
+    c.setFillColor(C_WHITE)
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(rx+8, my-122, "Spinach & Egg Frittata")
+    c.setFillColor(C_LGRAY)
+    c.setFont("Helvetica", 7.5)
+    c.drawString(rx+8, my-136, "Uses: Spinach (1d left), Eggs, Cheese")
+    c.drawString(rx+8, my-148, "Calories: 420  |  Protein: 28g  |  Carbs: 8g")
+    c.setFillColor(C_TEAL)
+    c.roundRect(rx+8, my-172, rw-18, 18, 4, fill=1, stroke=0)
+    c.setFillColor(C_BG)
+    c.setFont("Helvetica-Bold", 7.5)
+    c.drawCentredString(rx+8+(rw-18)/2, my-166, "▶ Start Cooking")
+
+    footer(c, 7)
+
+
+def slide_core_features(c):
+    bg(c); slide_header(c, 8, "Core Features", "5 pillars of the FridgeAI Nexus platform")
+
+    features = [
+        (C_TEAL,   "🧊", "Smart Fridge\nInventory",
+         "Add items manually or by barcode scan. AI tracks quantities, expiry dates and sends alerts before food goes bad."),
+        (C_GREEN,  "🤖", "AI Meal\nPlanner",
+         "Based on fridge contents, AI suggests meals matching your dietary preferences, calorie goals and available ingredients."),
+        (C_YELLOW, "📊", "Nutrition\nTracker",
+         "Every meal is broken down into macros and micros. Daily and weekly nutrition reports generated automatically."),
+        (C_RED,    "🛒", "Grocery List\nGenerator",
+         "When fridge items run low or meal plans need missing ingredients, AI auto-generates a prioritised grocery list."),
+        (C_PURPLE, "📖", "Recipe Browser\n& AI Explain",
+         "Step-by-step recipes tailored to fridge contents. AI explains substitutions, reducing waste and shopping trips."),
+    ]
+
+    fw, fh = (W-60)/3 - 8, 148
+    positions = [(0,0),(1,0),(2,0),(0,1),(1,1)]
+    # Draw 3 in row 1, 2 in row 2 centred
+    row1 = features[:3]
+    row2 = features[3:]
+
+    def draw_feat(color, icon, title, desc, bx, by):
+        # Shadow
+        c.setFillColor(c_hex("#040d14"))
+        c.roundRect(bx+3, by-3, fw, fh, 10, fill=1, stroke=0)
+        # Card
+        c.setFillColor(C_CARD)
+        c.roundRect(bx, by, fw, fh, 10, fill=1, stroke=0)
+        c.setStrokeColor(color)
+        c.setLineWidth(1.5)
+        c.roundRect(bx, by, fw, fh, 10, fill=0, stroke=1)
+        # Top colour bar
+        c.setFillColor(color)
+        c.roundRect(bx, by+fh-20, fw, 20, 8, fill=1, stroke=0)
+        c.rect(bx, by+fh-12, fw, 12, fill=1, stroke=0)
+        # Icon
+        c.setFillColor(C_WHITE)
+        c.setFont("Helvetica-Bold", 24)
+        c.drawCentredString(bx+fw/2, by+fh-52, icon)
+        # Title
+        c.setFont("Helvetica-Bold", 9.5)
+        for i, ln in enumerate(title.split("\n")):
+            c.drawCentredString(bx+fw/2, by+fh-70-i*12, ln)
+        # Desc
+        c.setFillColor(C_LGRAY)
+        c.setFont("Helvetica", 7.5)
+        words = desc.split()
+        line = ""
+        dy = by+fh-96
+        for w in words:
+            test = line+w+" "
+            if c.stringWidth(test,"Helvetica",7.5) > fw-16:
+                c.drawString(bx+8, dy, line.strip()); dy-=10; line=w+" "
+            else: line=test
+        if line: c.drawString(bx+8, dy, line.strip())
+
+    y0 = H - 96
+    for i, feat in enumerate(row1):
+        fx = 28 + i*(fw+12)
+        draw_feat(*feat, fx, y0-fh)
+
+    row2_total = 2*fw + 12
+    rx0 = (W - row2_total)/2
+    for i, feat in enumerate(row2):
+        fx = rx0 + i*(fw+12)
+        draw_feat(*feat, fx, y0-fh-fh-20)
+
+    footer(c, 8)
+
+
+def slide_data_pipeline(c):
+    bg(c); slide_header(c, 9, "Data Pipeline & AI Analysis", "From raw fridge data to intelligent insights")
+
+    # Vertical pipeline with icons
+    stages = [
+        (C_TEAL,   "📤", "Data Input",          "User adds fridge items via manual entry, barcode scan, or receipt photo upload."),
+        (C_GREEN,  "🧹", "Data Cleaning",        "System validates quantities, normalises units (g/ml/count), removes duplicates."),
+        (C_YELLOW, "🔍", "EDA & Profiling",       "AI profiles the inventory: categories, nutritional gaps, expiry risk scores."),
+        (C_RED,    "⚙️",  "Feature Engineering",  "Calculates shelf-life scores, macro density per item, meal compatibility index."),
+        (C_PURPLE, "🤖", "AI Model & Prediction", "LLM generates meal plans, grocery lists, nutrition reports, and expiry alerts."),
+        (C_TEAL,   "📊", "Results & Export",      "Dashboard updated. Reports downloadable as PDF, grocery list shareable via link."),
+    ]
+
+    bw, bh = W - 80, 56
+    x0, y0 = 36, H - 96
+    gap = 10
+    conn_x = x0 + 28
+
+    for i, (color, icon, title, desc) in enumerate(stages):
+        by = y0 - i*(bh+gap)
+        # Background card
+        c.setFillColor(C_CARD)
+        c.roundRect(x0, by-bh, bw, bh, 7, fill=1, stroke=0)
+        c.setStrokeColor(color)
+        c.setLineWidth(1)
+        c.roundRect(x0, by-bh, bw, bh, 7, fill=0, stroke=1)
+        # Step number circle
+        c.setFillColor(color)
+        c.circle(x0+22, by-bh/2, 16, fill=1, stroke=0)
+        c.setFillColor(C_BG)
+        c.setFont("Helvetica-Bold", 14)
+        c.drawCentredString(x0+22, by-bh/2-6, icon)
+        # Title
+        c.setFillColor(color)
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(x0+48, by-18, title)
+        # Desc
+        c.setFillColor(C_LGRAY)
+        c.setFont("Helvetica", 8.5)
+        c.drawString(x0+48, by-32, desc[:95])
+        # Stage label on right
+        c.setFillColor(C_PANEL)
+        c.roundRect(x0+bw-70, by-bh/2-9, 62, 18, 4, fill=1, stroke=0)
+        c.setFillColor(color)
+        c.setFont("Helvetica-Bold", 7.5)
+        c.drawCentredString(x0+bw-39, by-bh/2-2, f"Stage {i+1}")
+        # Connector line down
+        if i < len(stages)-1:
+            cy = by - bh
+            c.setStrokeColor(color)
+            c.setLineWidth(2)
+            c.line(conn_x, cy, conn_x, cy-gap+1)
+            c.setFillColor(color)
+            p = c.beginPath()
+            p.moveTo(conn_x, cy-gap+1)
+            p.lineTo(conn_x-4, cy-gap+7)
+            p.lineTo(conn_x+4, cy-gap+7)
+            p.close()
+            c.drawPath(p, fill=1, stroke=0)
+
+    footer(c, 9)
+
+
+def slide_model_training(c):
+    bg(c); slide_header(c, 10, "Model Training & Evaluation", "How FridgeAI learns and improves")
+
+    # Left: process steps
+    lw = W/2 - 36
+    steps = [
+        (C_TEAL,   "Data Preparation",   "Scale numbers, handle missing values,\nconvert text to numbers. 80/20 split."),
+        (C_GREEN,  "Model Selection",     "System tries multiple algorithms\n(LLM, classification, regression)."),
+        (C_YELLOW, "Training",            "Model learns patterns from fridge\ndata, meal history, nutrition logs."),
+        (C_RED,    "Evaluation",          "Accuracy, Precision, Recall, F1 Score.\nConfusion matrix for category errors."),
+        (C_PURPLE, "Cross-Validation",    "K-fold testing for reliable results.\nPrevents overfitting on small datasets."),
+    ]
+
+    y0 = H - 96
+    sh = 72
+    for i, (color, title, desc) in enumerate(steps):
+        by = y0 - i*sh
+        c.setFillColor(C_CARD)
+        c.roundRect(28, by-sh+10, lw, sh-8, 6, fill=1, stroke=0)
+        c.setFillColor(color)
+        c.roundRect(28, by-sh+10, 6, sh-8, 4, fill=1, stroke=0)
+        c.setFillColor(color)
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(42, by-18, title)
+        c.setFillColor(C_LGRAY)
+        c.setFont("Helvetica", 8)
+        for j, ln in enumerate(desc.split("\n")):
+            c.drawString(42, by-30-j*11, ln)
+        if i < len(steps)-1:
+            arrow_v(c, 28+16, by-sh+10, by-sh+2-2, color=color, lw=1.5)
+
+    # Right: metrics visual
+    rx = W/2 + 10
+    rw = W/2 - 38
+    ry = H - 100
+    rh = 320
+
+    c.setFillColor(C_PANEL)
+    c.roundRect(rx, ry-rh, rw, rh, 8, fill=1, stroke=0)
+    c.setStrokeColor(C_TEAL)
+    c.setLineWidth(1)
+    c.roundRect(rx, ry-rh, rw, rh, 8, fill=0, stroke=1)
+    c.setFillColor(C_TEAL)
+    c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(rx+rw/2, ry-20, "Evaluation Metrics")
+
+    metrics = [
+        (C_GREEN,  "Accuracy",  92, "%"),
+        (C_TEAL,   "Precision", 88, "%"),
+        (C_YELLOW, "Recall",    85, "%"),
+        (C_RED,    "F1 Score",  86, "%"),
+    ]
+    my = ry - 50
+    bar_max = rw - 50
+    for color, name, val, unit in metrics:
+        c.setFillColor(C_LGRAY)
+        c.setFont("Helvetica", 8)
+        c.drawString(rx+12, my, name)
+        # Bar track
+        c.setFillColor(C_CARD)
+        c.roundRect(rx+12, my-14, bar_max, 10, 3, fill=1, stroke=0)
+        # Bar fill
+        c.setFillColor(color)
+        c.roundRect(rx+12, my-14, bar_max*val/100, 10, 3, fill=1, stroke=0)
+        # Value
+        c.setFillColor(C_WHITE)
+        c.setFont("Helvetica-Bold", 8)
+        c.drawRightString(rx+rw-10, my, f"{val}{unit}")
+        my -= 36
+
+    # Confusion matrix mini
+    c.setFillColor(C_TEAL)
+    c.setFont("Helvetica-Bold", 9)
+    c.drawCentredString(rx+rw/2, my-6, "Confusion Matrix (Sample)")
+    mat = [[84,8],[12,96]]
+    labels = ["Neg","Pos"]
+    sz = 34
+    cmx = rx + rw/2 - sz
+    cmy = my - 20
+    for r in range(2):
+        for cc in range(2):
+            col = C_GREEN if r==cc else C_RED
+            c.setFillColor(col)
+            c.roundRect(cmx+cc*sz, cmy-r*sz-sz, sz-2, sz-2, 3, fill=1, stroke=0)
+            c.setFillColor(C_WHITE)
+            c.setFont("Helvetica-Bold", 11)
+            c.drawCentredString(cmx+cc*sz+sz/2, cmy-r*sz-sz/2-5, str(mat[r][cc]))
+
+    footer(c, 10)
+
+
+def slide_predictions(c):
+    bg(c); slide_header(c, 11, "Predictions & Results", "AI-powered meal and nutrition outputs")
+
+    # Left panel: prediction form mockup
+    lw = W*0.44
+    lx = 28
+    ly = H - 96
+
+    c.setFillColor(C_PANEL)
+    c.roundRect(lx, ly-320, lw, 320, 8, fill=1, stroke=0)
+    c.setStrokeColor(C_TEAL)
+    c.setLineWidth(1)
+    c.roundRect(lx, ly-320, lw, 320, 8, fill=0, stroke=1)
+    c.setFillColor(C_TEAL)
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(lx+12, ly-22, "🧪 Test Your Meal Plan")
+    c.setFillColor(C_LGRAY)
+    c.setFont("Helvetica", 7.5)
+    c.drawString(lx+12, ly-36, "Enter values then predict")
+
+    fields = [
+        ("Fridge Items", "Spinach, Eggs, Cheese"),
+        ("Dietary Goal", "Low Carb"),
+        ("Calorie Target", "1800 kcal/day"),
+        ("Allergies", "None"),
+        ("Cuisine Pref.", "Mediterranean"),
+        ("Meal Type", "Dinner"),
+    ]
+    fy = ly - 58
+    for label, val in fields:
+        c.setFillColor(C_DGRAY)
+        c.setFont("Helvetica", 7.5)
+        c.drawString(lx+12, fy, label)
+        c.setFillColor(C_CARD)
+        c.roundRect(lx+12, fy-18, lw-24, 16, 3, fill=1, stroke=0)
+        c.setFillColor(C_WHITE)
+        c.setFont("Helvetica", 8)
+        c.drawString(lx+16, fy-12, val)
+        fy -= 36
+
+    # Run button
+    c.setFillColor(C_TEAL)
+    c.roundRect(lx+12, fy-4, lw-24, 24, 5, fill=1, stroke=0)
+    c.setFillColor(C_BG)
+    c.setFont("Helvetica-Bold", 9)
+    c.drawCentredString(lx+lw/2, fy+6, "▶  Generate Meal Plan")
+
+    # Right panel: result
+    rx = lx + lw + 16
+    rw = W - rx - 28
+    c.setFillColor(C_PANEL)
+    c.roundRect(rx, ly-320, rw, 320, 8, fill=1, stroke=0)
+    c.setStrokeColor(C_GREEN)
+    c.setLineWidth(1)
+    c.roundRect(rx, ly-320, rw, 320, 8, fill=0, stroke=1)
+    c.setFillColor(C_GREEN)
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(rx+10, ly-22, "✅ Prediction Result")
+
+    c.setFillColor(C_WHITE)
+    c.setFont("Helvetica-Bold", 13)
+    c.drawString(rx+10, ly-44, "Spinach Egg Frittata")
+
+    result_items = [
+        (C_GREEN,  "Calories",  "420 kcal"),
+        (C_TEAL,   "Protein",   "28 g"),
+        (C_YELLOW, "Carbs",     "8 g"),
+        (C_RED,    "Fat",       "22 g"),
+        (C_PURPLE, "Fibre",     "4 g"),
+    ]
+    ry2 = ly - 70
+    for col, nm, val in result_items:
+        c.setFillColor(C_CARD)
+        c.roundRect(rx+10, ry2-16, rw-20, 18, 4, fill=1, stroke=0)
+        c.setFillColor(col)
+        c.setFont("Helvetica-Bold", 8)
+        c.drawString(rx+16, ry2-8, nm)
+        c.setFillColor(C_WHITE)
+        c.setFont("Helvetica-Bold", 9)
+        c.drawRightString(rx+rw-14, ry2-8, val)
+        ry2 -= 24
+
+    c.setFillColor(C_TEAL)
+    c.setFont("Helvetica-Bold", 8)
+    c.drawString(rx+10, ry2-8, "🤖 AI Explanation:")
+    c.setFillColor(C_LGRAY)
+    c.setFont("Helvetica", 7.5)
+    explanation = "This meal was suggested because Spinach expires in 1 day. High protein content meets your 150g/day protein goal. Low carb matches your dietary preference."
+    ey = ry2-22
+    words = explanation.split()
+    line = ""
+    for w in words:
+        test = line+w+" "
+        if c.stringWidth(test,"Helvetica",7.5) > rw-22:
+            c.drawString(rx+10, ey, line.strip()); ey-=11; line=w+" "
+        else: line=test
+    if line: c.drawString(rx+10, ey, line.strip())
+
+    footer(c, 11)
+
+
+def slide_subscription(c):
+    bg(c); slide_header(c, 12, "Subscription & Payment System", "Free and premium plans with UPI payment")
+
+    # Two plan cards
+    plans = [
+        (C_LGRAY, "Starter", "₹750 / month", [
+            "✓ Basic fridge inventory",
+            "✓ AI meal suggestions (5/day)",
+            "✓ Nutrition tracking",
+            "✓ GPT-4o Mini",
+            "✓ Claude Haiku 4.5",
+            "✗ Advanced analytics",
+            "✗ Grocery integration",
+        ]),
+        (C_TEAL, "Pro  ★ Recommended", "₹1,399 / month", [
+            "✓ Unlimited fridge inventory",
+            "✓ Unlimited AI meal plans",
+            "✓ Advanced nutrition reports",
+            "✓ All GPT models (4, 4o, Codex)",
+            "✓ Claude Sonnet 4.6 & Opus 4.6",
+            "✓ Smart grocery integration",
+            "✓ Early access to new features",
+        ]),
+    ]
+
+    pw = (W - 72) / 2
+    ph = 310
+    py = H - 96
+    for i, (color, name, price, features) in enumerate(plans):
+        px = 28 + i*(pw+16)
+        is_pro = i == 1
+        # Shadow
+        c.setFillColor(c_hex("#040d14"))
+        c.roundRect(px+4, py-ph-4, pw, ph, 10, fill=1, stroke=0)
+        # Card
+        c.setFillColor(C_CARD if not is_pro else c_hex("#0d2d3d"))
+        c.roundRect(px, py-ph, pw, ph, 10, fill=1, stroke=0)
+        c.setStrokeColor(color)
+        c.setLineWidth(2 if is_pro else 1)
+        c.roundRect(px, py-ph, pw, ph, 10, fill=0, stroke=1)
+        # Header
+        c.setFillColor(color)
+        c.roundRect(px, py-40, pw, 40, 8, fill=1, stroke=0)
+        c.rect(px, py-28, pw, 28, fill=1, stroke=0)
+        c.setFillColor(C_BG)
+        c.setFont("Helvetica-Bold", 12)
+        c.drawCentredString(px+pw/2, py-22, name)
+        # Price
+        c.setFillColor(color)
+        c.setFont("Helvetica-Bold", 18)
+        c.drawCentredString(px+pw/2, py-62, price)
+        # Features
+        fy = py - 88
+        for feat in features:
+            col = C_GREEN if feat.startswith("✓") else C_RED
+            c.setFillColor(col)
+            c.setFont("Helvetica-Bold", 9)
+            c.drawString(px+16, fy, feat[:40])
+            fy -= 17
+        # Button
+        c.setFillColor(color)
+        c.roundRect(px+16, py-ph+16, pw-32, 24, 5, fill=1, stroke=0)
+        c.setFillColor(C_BG)
+        c.setFont("Helvetica-Bold", 8.5)
+        c.drawCentredString(px+pw/2, py-ph+25, f"Subscribe {price.split('/')[0].strip()}/mo")
+
+    # Payment flow
+    py2 = py - ph - 20
+    c.setFillColor(C_PANEL)
+    c.roundRect(28, py2-52, W-56, 52, 6, fill=1, stroke=0)
+    c.setFillColor(C_YELLOW)
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(40, py2-18, "💳  UPI Payment Flow:")
+    c.setFillColor(C_LGRAY)
+    c.setFont("Helvetica", 8.5)
+    flow = ["Choose Plan", "→", "Scan QR / UPI ID", "→", "Upload Screenshot", "→", "Admin Verifies (3-4 hrs)", "→", "Access Activated"]
+    fx = 40
+    for f in flow:
+        col = C_TEAL if f == "→" else C_WHITE
+        c.setFillColor(col)
+        c.drawString(fx, py2-36, f)
+        fx += c.stringWidth(f,"Helvetica",8.5) + 6
+    footer(c, 12)
+
+
+def slide_admin(c):
+    bg(c); slide_header(c, 13, "Admin Panel", "Real-time platform management & monitoring")
+
+    # Nav tabs
+    tabs = ["Dashboard", "Users", "Projects", "Subscriptions", "Activity Log", "Help Requests", "Settings"]
+    tx = 28
+    ty = H - 84
+    for t in tabs:
+        tw = c.stringWidth(t,"Helvetica",8)+20
+        is_active = t == "Dashboard"
+        c.setFillColor(C_TEAL if is_active else C_CARD)
+        c.roundRect(tx, ty-18, tw, 18, 4, fill=1, stroke=0)
+        c.setFillColor(C_BG if is_active else C_LGRAY)
+        c.setFont("Helvetica-Bold" if is_active else "Helvetica", 8)
+        c.drawString(tx+10, ty-11, t)
+        tx += tw + 6
+
+    # Stat cards
+    stats = [
+        (C_TEAL,   "12", "Total Users",    "Registered accounts"),
+        (C_GREEN,  "3",  "Administrators", "Privileged accounts"),
+        (C_YELLOW, "9",  "Regular Users",  "Standard accounts"),
+        (C_RED,    "11", "Total Projects", "Stored in MongoDB"),
+    ]
+    sw = (W-56)/4 - 6
+    sy = H - 110
+    for i,(col,val,title,sub) in enumerate(stats):
+        sx = 28 + i*(sw+6)
+        c.setFillColor(C_CARD)
+        c.roundRect(sx, sy-58, sw, 58, 7, fill=1, stroke=0)
+        c.setStrokeColor(col)
+        c.setLineWidth(0.8)
+        c.roundRect(sx, sy-58, sw, 58, 7, fill=0, stroke=1)
+        c.setFillColor(col)
+        c.setFont("Helvetica-Bold", 22)
+        c.drawCentredString(sx+sw/2, sy-26, val)
+        c.setFillColor(C_WHITE)
+        c.setFont("Helvetica-Bold", 8)
+        c.drawCentredString(sx+sw/2, sy-42, title)
+        c.setFillColor(C_DGRAY)
+        c.setFont("Helvetica", 7)
+        c.drawCentredString(sx+sw/2, sy-52, sub)
+
+    # Quick actions
+    qa = H - 182
+    c.setFillColor(C_TEAL)
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(28, qa, "⚡ Quick Actions")
+    actions = ["Manage Users","View Projects","View Activities","Payments","Help Issues","Add User","Settings"]
+    colors_a = [C_TEAL,C_GREEN,C_YELLOW,C_RED,C_PURPLE,C_TEAL,C_LGRAY]
+    ax = 28
+    for i,(action,col) in enumerate(zip(actions,colors_a)):
+        aw = c.stringWidth(action,"Helvetica-Bold",8)+20
+        c.setFillColor(col)
+        c.roundRect(ax, qa-22, aw, 18, 4, fill=1, stroke=0)
+        c.setFillColor(C_BG)
+        c.setFont("Helvetica-Bold", 8)
+        c.drawString(ax+10, qa-15, action)
+        ax += aw+8
+
+    # User table
+    c.setFillColor(C_PANEL)
+    c.roundRect(28, 45, W-56, 200, 6, fill=1, stroke=0)
+    c.setFillColor(C_TEAL)
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(38, 232, "👥 Recent Users")
+    headers = ["USER","EMAIL","ROLE","JOINED","ACTIONS"]
+    hcols = [120,200,70,80,70]
+    hx = 38
+    hy = 218
+    for h,hw in zip(headers,hcols):
+        c.setFillColor(C_DGRAY)
+        c.setFont("Helvetica-Bold", 7.5)
+        c.drawString(hx, hy, h)
+        hx += hw
+    users = [
+        ("Sumit Sarodiya","sumitsarodiya@gmail.com","ADMIN","Jan 25","●●●"),
+        ("Zeel Mistry","zeelmistry@gmail.com","ADMIN","Jan 25","●●●"),
+        ("Meet Movaliya","meetmovaliya@gmail.com","USER","Jan 31","●●●"),
+        ("Prince Asodaria","prince@ict.edu","USER","Feb 1","●●●"),
+    ]
+    role_colors = {"ADMIN": C_RED, "USER": C_GREEN}
+    uy = 204
+    for user in users:
+        c.setFillColor(c_hex("#0e2535") if users.index(user)%2==0 else C_CARD)
+        c.rect(28, uy-14, W-56, 16, fill=1, stroke=0)
+        ux = 38
+        for j,(val,hw) in enumerate(zip(user,hcols)):
+            if j==2:
+                rc = role_colors.get(val, C_LGRAY)
+                c.setFillColor(rc)
+                c.roundRect(ux, uy-12, c.stringWidth(val,"Helvetica-Bold",7)+10, 13, 3, fill=1, stroke=0)
+                c.setFillColor(C_BG)
+                c.setFont("Helvetica-Bold", 7)
+                c.drawString(ux+5, uy-5, val)
+            else:
+                c.setFillColor(C_LGRAY)
+                c.setFont("Helvetica", 7.5)
+                c.drawString(ux, uy-5, val[:22])
+            ux += hw
+        uy -= 18
+    footer(c, 13)
+
+
+def slide_mongodb(c):
+    bg(c); slide_header(c, 14, "Database — MongoDB Schema", "Collection structure and relationships")
+
+    collections = [
+        (C_TEAL,   "users",        ["_id: ObjectId","name: String","email: String","password: String (hashed)","role: admin|user","dietaryGoals: Object","settings: Object","createdAt: Date"]),
+        (C_GREEN,  "fridge_items", ["_id: ObjectId","userId: ObjectId →","itemName: String","quantity: Number","unit: String","barcode: String","expiryDate: Date","nutritionData: Object"]),
+        (C_YELLOW, "meal_logs",    ["_id: ObjectId","userId: ObjectId →","mealName: String","calories: Number","protein: Number","carbs: Number","fat: Number","loggedAt: Date"]),
+        (C_RED,    "projects",     ["_id: ObjectId","userId: ObjectId →","sessionId: String","dataset: Object","stage: String","model: String","accuracy: Number","updatedAt: Date"]),
+        (C_PURPLE, "payments",     ["_id: ObjectId","userId: ObjectId →","plan: starter|pro","amount: Number","upiTxnId: String","status: pending|paid","expiresAt: Date"]),
+    ]
+
+    cw = (W - 60) / len(collections) - 4
+    ch = 280
+    cx0 = 28
+    cy = H - 96
+
+    for i, (color, name, fields) in enumerate(collections):
+        bx = cx0 + i*(cw+5)
+        # Card
+        c.setFillColor(C_CARD)
+        c.roundRect(bx, cy-ch, cw, ch, 7, fill=1, stroke=0)
+        c.setStrokeColor(color)
+        c.setLineWidth(1.2)
+        c.roundRect(bx, cy-ch, cw, ch, 7, fill=0, stroke=1)
+        # Header
+        c.setFillColor(color)
+        c.roundRect(bx, cy-26, cw, 26, 6, fill=1, stroke=0)
+        c.rect(bx, cy-16, cw, 16, fill=1, stroke=0)
+        c.setFillColor(C_BG)
+        c.setFont("Helvetica-Bold", 8)
+        c.drawCentredString(bx+cw/2, cy-17, name)
+        # Fields
+        fy = cy - 42
+        for field in fields:
+            c.setFillColor(C_DGRAY)
+            c.setFont("Helvetica", 6.5)
+            fparts = field.split(":")
+            if len(fparts) >= 2:
+                c.setFillColor(C_TEAL)
+                c.setFont("Helvetica-Bold", 6.5)
+                c.drawString(bx+6, fy, fparts[0])
+                c.setFillColor(C_LGRAY)
+                c.setFont("Helvetica", 6.5)
+                c.drawString(bx+6+c.stringWidth(fparts[0],"Helvetica-Bold",6.5)+2, fy, ":"+":".join(fparts[1:]))
+            else:
+                c.drawString(bx+6, fy, field)
+            fy -= 13
+
+        # Relationship arrow to users (from all others)
+        if i > 0:
+            c.setStrokeColor(color)
+            c.setLineWidth(0.8)
+            # horizontal line to first box
+            mid_y = cy - ch/2
+            c.line(bx, mid_y, cx0+cw, mid_y)
+            # dashed style
+            c.setDash([3,3])
+            c.line(cx0+cw+2, mid_y, bx-2, mid_y)
+            c.setDash()
+
+    # Relationship legend
+    ly = cy - ch - 20
+    c.setFillColor(C_PANEL)
+    c.roundRect(28, ly-26, W-56, 26, 5, fill=1, stroke=0)
+    c.setFillColor(C_TEAL)
+    c.setFont("Helvetica-Bold", 8)
+    c.drawString(40, ly-10, "🔗 Relationships:")
+    c.setFillColor(C_LGRAY)
+    c.setFont("Helvetica", 8)
+    c.drawString(40, ly-20, "All collections linked via userId → 1 user owns many fridge_items, meal_logs, projects, and payments")
+    footer(c, 14)
+
+
+def slide_aws(c):
+    bg(c); slide_header(c, 15, "Deployment — AWS Infrastructure", "Cloud architecture for production deployment")
+
+    # Central: two repo architecture
+    # Left column: Repo 1, Right: Repo 2
+    # Bottom: shared infra
+
+    # Repo 1 box
+    r1x, r1y, r1w, r1h = 28, H-100, 240, 200
+    c.setFillColor(C_CARD)
+    c.roundRect(r1x, r1y-r1h, r1w, r1h, 8, fill=1, stroke=0)
+    c.setStrokeColor(C_TEAL)
+    c.setLineWidth(1.5)
+    c.roundRect(r1x, r1y-r1h, r1w, r1h, 8, fill=0, stroke=1)
+    c.setFillColor(C_TEAL)
+    c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(r1x+r1w/2, r1y-20, "REPO 1")
+    c.setFillColor(C_LGRAY)
+    c.setFont("Helvetica", 8)
+    c.drawCentredString(r1x+r1w/2, r1y-34, "Frontend + Backend")
+    # Sub-boxes
+    for j,(col,txt,sub) in enumerate([
+        (C_TEAL, "React.js + Next.js","AWS S3 + CloudFront"),
+        (C_GREEN,"Node.js / NestJS","AWS EC2 + Nginx + PM2"),
+    ]):
+        by = r1y - 70 - j*64
+        c.setFillColor(C_PANEL)
+        c.roundRect(r1x+12, by, r1w-24, 50, 6, fill=1, stroke=0)
+        c.setStrokeColor(col)
+        c.setLineWidth(0.8)
+        c.roundRect(r1x+12, by, r1w-24, 50, 6, fill=0, stroke=1)
+        c.setFillColor(col)
+        c.setFont("Helvetica-Bold", 8.5)
+        c.drawString(r1x+20, by+35, txt)
+        c.setFillColor(C_LGRAY)
+        c.setFont("Helvetica", 7.5)
+        c.drawString(r1x+20, by+20, sub)
+
+    # Repo 2 box
+    r2x, r2y, r2w, r2h = W-28-240, H-100, 240, 200
+    c.setFillColor(C_CARD)
+    c.roundRect(r2x, r2y-r2h, r2w, r2h, 8, fill=1, stroke=0)
+    c.setStrokeColor(C_GREEN)
+    c.setLineWidth(1.5)
+    c.roundRect(r2x, r2y-r2h, r2w, r2h, 8, fill=0, stroke=1)
+    c.setFillColor(C_GREEN)
+    c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(r2x+r2w/2, r2y-20, "REPO 2")
+    c.setFillColor(C_LGRAY)
+    c.setFont("Helvetica", 8)
+    c.drawCentredString(r2x+r2w/2, r2y-34, "AI Engine (ML Pipeline)")
+    # AI sub-boxes
+    for j,(col,txt,sub) in enumerate([
+        (C_YELLOW, "Python FastAPI","Separate AWS EC2 instance"),
+        (C_RED,    "LLM Agents","AWS VPC (private comms)"),
+    ]):
+        by = r2y - 70 - j*64
+        c.setFillColor(C_PANEL)
+        c.roundRect(r2x+12, by, r2w-24, 50, 6, fill=1, stroke=0)
+        c.setStrokeColor(col)
+        c.setLineWidth(0.8)
+        c.roundRect(r2x+12, by, r2w-24, 50, 6, fill=0, stroke=1)
+        c.setFillColor(col)
+        c.setFont("Helvetica-Bold", 8.5)
+        c.drawString(r2x+20, by+35, txt)
+        c.setFillColor(C_LGRAY)
+        c.setFont("Helvetica", 7.5)
+        c.drawString(r2x+20, by+20, sub)
+
+    # Center arrow (VPC private)
+    ax1 = r1x + r1w + 4
+    ax2 = r2x - 4
+    ay = H - 180
+    c.setStrokeColor(C_PURPLE)
+    c.setLineWidth(2)
+    c.setDash([6,4])
+    c.line(ax1, ay, ax2, ay)
+    c.setDash()
+    c.setFillColor(C_PURPLE)
+    p = c.beginPath()
+    p.moveTo(ax2, ay); p.lineTo(ax2-7,ay+4); p.lineTo(ax2-7,ay-4); p.close()
+    c.drawPath(p, fill=1, stroke=0)
+    c.setFillColor(C_PURPLE)
+    c.setFont("Helvetica-Bold", 7)
+    c.drawCentredString((ax1+ax2)/2, ay+6, "AWS VPC (Private)")
+
+    # Shared infra row
+    infra = [
+        (C_TEAL,   "AWS RDS",            "Database"),
+        (C_GREEN,  "AWS S3",             "Storage"),
+        (C_YELLOW, "AWS Route 53",       "DNS"),
+        (C_RED,    "AWS Secrets Mgr",    "API Keys"),
+        (C_PURPLE, "AWS CloudFront",     "CDN"),
+    ]
+    iy = H - 320
+    iw = (W-56) / len(infra) - 5
+    c.setFillColor(C_LGRAY)
+    c.setFont("Helvetica-Bold", 9)
+    c.drawCentredString(W/2, iy+18, "⚙  Shared Infrastructure")
+    for i,(col,svc,role) in enumerate(infra):
+        ix = 28+i*(iw+5)
+        c.setFillColor(C_CARD)
+        c.roundRect(ix, iy-58, iw, 58, 6, fill=1, stroke=0)
+        c.setStrokeColor(col)
+        c.setLineWidth(0.8)
+        c.roundRect(ix, iy-58, iw, 58, 6, fill=0, stroke=1)
+        c.setFillColor(col)
+        c.setFont("Helvetica-Bold", 7.5)
+        c.drawCentredString(ix+iw/2, iy-22, svc)
+        c.setFillColor(C_LGRAY)
+        c.setFont("Helvetica", 7)
+        c.drawCentredString(ix+iw/2, iy-35, role)
+    footer(c, 15)
+
+
+def slide_tech_stack(c):
+    bg(c); slide_header(c, 16, "Technical Stack & Implementation", "Full technology overview")
+
+    rows = [
+        ("Frontend",    "React.js, Next.js",               "Dashboard, Fridge UI, Meal Planner views",       C_TEAL),
+        ("Backend",     "Node.js, NestJS, Express",         "REST APIs, Auth, Session management",            C_GREEN),
+        ("AI Engine",   "Python, FastAPI, LangChain",       "LLM integration, Nutrition analysis pipeline",   C_YELLOW),
+        ("AI Models",   "OpenAI GPT-4o, Claude Sonnet 4.6","Meal suggestions, nutrition insights, XAI",       C_RED),
+        ("Database",    "MongoDB, Mongoose ODM",            "User data, fridge inventory, meal history",       C_PURPLE),
+        ("Storage",     "AWS S3, CloudFront",               "Images, receipts, grocery exports, model files", C_TEAL),
+        ("Auth",        "JWT, bcrypt, OTP, TOTP",           "Secure user auth, 2FA, session tokens",          C_GREEN),
+        ("Deployment",  "AWS EC2, Vercel, Nginx, PM2",      "Scalable cloud infra, CI/CD, auto-restart",      C_YELLOW),
+        ("Payment",     "UPI (GPay, PhonePe, Paytm)",       "Manual verification workflow, QR code payments", C_RED),
+    ]
+
+    # Table
+    headers = ["Layer", "Technology", "Purpose"]
+    col_ws = [100, 185, 250]
+    row_h = 30
+    tx, ty = 28, H - 96
+    th = 28
+
+    # Header row
+    c.setFillColor(C_TEAL)
+    c.roundRect(tx, ty-th, sum(col_ws)+16, th, 5, fill=1, stroke=0)
+    hx = tx+8
+    for h, cw in zip(headers, col_ws):
+        c.setFillColor(C_BG)
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(hx, ty-18, h)
+        hx += cw
+
+    # Data rows
+    ry = ty - th
+    for i, (layer, tech, purpose, color) in enumerate(rows):
+        rbg = C_CARD if i%2==0 else C_PANEL
+        c.setFillColor(rbg)
+        c.rect(tx, ry-row_h, sum(col_ws)+16, row_h, fill=1, stroke=0)
+        # Color dot
+        c.setFillColor(color)
+        c.circle(tx+6, ry-row_h/2, 4, fill=1, stroke=0)
+        rx2 = tx+8+8
+        vals = [layer, tech, purpose]
+        for val, cw in zip(vals, col_ws):
+            c.setFillColor(C_WHITE if val==layer else C_LGRAY)
+            c.setFont("Helvetica-Bold" if val==layer else "Helvetica", 8.5)
+            c.drawString(rx2, ry-row_h/2-4, val[:34])
+            rx2 += cw
+        ry -= row_h
+
+    # Grid lines
+    c.setStrokeColor(C_DGRAY)
+    c.setLineWidth(0.3)
+    for i in range(len(rows)+2):
+        c.line(tx, ty-th-i*row_h, tx+sum(col_ws)+16, ty-th-i*row_h)
+
+    footer(c, 16)
+
+
+def slide_challenges(c):
+    bg(c); slide_header(c, 17, "Challenges & Solutions", "Key problems encountered and how we solved them")
+
+    items = [
+        (C_TEAL,   "Accurate Nutritional Data",
+         "Food items have varying nutritional profiles across brands and regions.",
+         "Integrated a comprehensive food database API (Open Food Facts) with AI-estimated fallback values for unknown items."),
+        (C_GREEN,  "Expiry Date Intelligence",
+         "Different foods have very different shelf lives; users often forget to track.",
+         "AI models trained on category-specific shelf life rules with smart push notifications before items expire."),
+        (C_YELLOW, "AI Meal Constraint Matching",
+         "Suggesting meals that use only available fridge items with correct nutritional balance is complex.",
+         "Built a constraint-based meal matching engine that filters recipes by exact inventory + dietary goals simultaneously."),
+        (C_RED,    "Multi-Service Integration",
+         "Connecting React, Node.js, FastAPI, and external food APIs caused data format mismatches.",
+         "Standardised all communication using a fixed JSON schema and OpenAPI spec across all services."),
+        (C_PURPLE, "Beginner vs Power Users",
+         "Casual users want simple meal ideas; nutrition-focused users need detailed macro control.",
+         "Built two modes: Simple Mode (auto meal suggestions) and Pro Mode (full macro planning & custom targets)."),
+    ]
+
+    ch_h = 96
+    gap = 10
+    y0 = H - 96
+
+    for i, (color, prob, detail, sol) in enumerate(items):
+        by = y0 - i*(ch_h+gap)
+        # Card
+        c.setFillColor(C_CARD)
+        c.roundRect(28, by-ch_h, W-56, ch_h, 7, fill=1, stroke=0)
+        # Left bar
+        c.setFillColor(color)
+        c.roundRect(28, by-ch_h, 7, ch_h, 5, fill=1, stroke=0)
+        c.rect(31, by-ch_h, 4, ch_h, fill=1, stroke=0)
+        # Problem
+        c.setFillColor(color)
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(44, by-18, f"✖  {prob}")
+        c.setFillColor(C_LGRAY)
+        c.setFont("Helvetica", 8.5)
+        c.drawString(44, by-32, detail[:100])
+        # Solution
+        c.setFillColor(C_GREEN)
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(44, by-50, "✔ Solution:")
+        c.setFillColor(C_WHITE)
+        c.setFont("Helvetica", 8.5)
+        # wrap solution
+        words = sol.split()
+        line = ""; sx = 44 + c.stringWidth("✔ Solution: ","Helvetica-Bold",9); sy = by-50
+        for w in words:
+            test = line+w+" "
+            if c.stringWidth(test,"Helvetica",8.5) > W-56-sx:
+                c.drawString(sx, sy, line.strip()); sy-=12; sx=44; line=w+" "
+            else: line=test
+        if line: c.drawString(sx, sy, line.strip())
+
+    footer(c, 17)
+
+
+def slide_conclusion(c):
+    bg(c); slide_header(c, 18, "Conclusion & Future Scope", "Summary and roadmap ahead")
+
+    # Left: conclusion
+    lw = W/2 - 36
+    lx = 28
+    ly = H - 96
+
+    c.setFillColor(C_TEAL)
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(lx, ly, "✅  Conclusion")
+    c.setStrokeColor(C_TEAL)
+    c.setLineWidth(1.5)
+    c.line(lx, ly-4, lx+lw, ly-4)
+
+    conc = [
+        "User learns ML basics → registers → adds fridge items → AI analyses inventory → meal plans generated.",
+        "User selects meals → nutrition tracked automatically → grocery list auto-created → food waste reduced.",
+        "Anyone — students, professionals, fitness enthusiasts, families — can use it regardless of tech skills.",
+        "A complete AI-powered smart kitchen platform: from raw fridge data to personalised, healthy meals in seconds.",
+    ]
+    cy = ly - 22
+    for point in conc:
+        c.setFillColor(C_TEAL)
+        c.circle(lx+8, cy+4, 5, fill=1, stroke=0)
+        c.setFillColor(C_LGRAY)
+        c.setFont("Helvetica", 8.5)
+        words = point.split()
+        line = ""; px = lx+20; py = cy
+        for w in words:
+            test = line+w+" "
+            if c.stringWidth(test,"Helvetica",8.5) > lw-20:
+                c.drawString(px, py, line.strip()); py-=12; px=lx+20; line=w+" "
+            else: line=test
+        if line: c.drawString(px, py, line.strip())
+        cy = py - 22
+
+    # Right: future scope
+    rx = W/2 + 8
+    rw = W/2 - 36
+    c.setFillColor(C_YELLOW)
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(rx, ly, "🚀  Future Scope")
+    c.setStrokeColor(C_YELLOW)
+    c.setLineWidth(1.5)
+    c.line(rx, ly-4, rx+rw, ly-4)
+
+    future = [
+        "Smart grocery integration with Blinkit, Swiggy Instamart for 1-click ordering.",
+        "IoT fridge sensor integration for automatic real-time inventory updates.",
+        "Wearable health app sync (Apple Health, Google Fit) for adaptive meal planning.",
+        "Food image recognition via phone camera using deep learning models (CNN).",
+        "Multi-user household support: shared fridge with individual meal goals.",
+        "AutoDL integration for customised user nutrition models trained on personal history.",
+    ]
+    fy = ly - 22
+    for point in future:
+        c.setFillColor(C_YELLOW)
+        c.circle(rx+8, fy+4, 5, fill=1, stroke=0)
+        c.setFillColor(C_LGRAY)
+        c.setFont("Helvetica", 8.5)
+        c.drawString(rx+20, fy, point[:60])
+        fy -= 18
+
+    # Bottom banner
+    bx, by, bw2, bh2 = 28, 50, W-56, 46
+    c.setFillColor(c_hex("#001525"))
+    c.roundRect(bx, by, bw2, bh2, 8, fill=1, stroke=0)
+    c.setStrokeColor(C_TEAL)
+    c.setLineWidth(1)
+    c.roundRect(bx, by, bw2, bh2, 8, fill=0, stroke=1)
+    c.setFillColor(C_TEAL)
+    c.setFont("Helvetica-Bold", 13)
+    c.drawCentredString(W/2, by+30, "FridgeAI Nexus — From Raw Fridge Data to Intelligent Meals")
+    c.setFillColor(C_LGRAY)
+    c.setFont("Helvetica", 9)
+    c.drawCentredString(W/2, by+14, "Built with React.js • Node.js • Python FastAPI • MongoDB • OpenAI GPT • Claude AI • AWS")
+    footer(c, 18)
+
+
+# ── Main runner ────────────────────────────────────────────────────────────────
+def main():
+    c = rl_canvas.Canvas(OUT, pagesize=A4)
+    c.setTitle("FridgeAI Nexus — AI-Powered Smart Kitchen Platform")
+    c.setAuthor("FridgeAI Nexus Project Team")
+    c.setSubject("Project Presentation — BSc Data Science")
+
+    slide_fns = [
+        slide_cover, slide_intro, slide_arch, slide_system_diagram,
+        slide_workflow, slide_auth, slide_dashboard, slide_core_features,
+        slide_data_pipeline, slide_model_training, slide_predictions,
+        slide_subscription, slide_admin, slide_mongodb, slide_aws,
+        slide_tech_stack, slide_challenges, slide_conclusion,
+    ]
+
+    for fn in slide_fns:
+        fn(c)
+        c.showPage()
+
+    c.save()
+    print(f"✅ Saved: {OUT}")
+
+main()
